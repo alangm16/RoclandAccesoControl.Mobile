@@ -63,7 +63,7 @@ public class ApiService
     public async Task<LoginResponse?> LoginAsync(string usuario, string password)
     {
         var body = JsonContent.Create(new { usuario, password });
-        var resp = await _http.PostAsync("/api/auth/guardia/login", body);
+        var resp = await _http.PostAsync("/api/mob/accesocontrol/Auth/guardia/login", body);
         if (!resp.IsSuccessStatusCode) return null;
         return await resp.Content.ReadFromJsonAsync<LoginResponse>(JsonOpts);
     }
@@ -72,7 +72,7 @@ public class ApiService
     public async Task<List<SolicitudPendiente>> ObtenerSolicitudesAsync()
     {
         SetAuthHeader();
-        var resp = await _http.GetAsync("/api/guardias/solicitudes");
+        var resp = await _http.GetAsync("/api/mob/accesocontrol/Guardias/solicitudes");
         if (!resp.IsSuccessStatusCode) return [];
         return await resp.Content.ReadFromJsonAsync<List<SolicitudPendiente>>(JsonOpts) ?? [];
     }
@@ -81,7 +81,7 @@ public class ApiService
     public async Task<List<AccesoActivo>> ObtenerActivosAsync()
     {
         SetAuthHeader();
-        var resp = await _http.GetAsync("/api/guardias/activos");
+        var resp = await _http.GetAsync("/api/mob/accesocontrol/Guardias/activos");
         if (!resp.IsSuccessStatusCode) return [];
         return await resp.Content.ReadFromJsonAsync<List<AccesoActivo>>(JsonOpts) ?? [];
     }
@@ -90,7 +90,7 @@ public class ApiService
     public async Task<bool> AprobarAsync(AprobarRequest request)
     {
         SetAuthHeader();
-        var resp = await _http.PostAsync("/api/guardias/aprobar",
+        var resp = await _http.PostAsync("/api/mob/accesocontrol/Guardias/aprobar",
             new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
         return resp.IsSuccessStatusCode;
     }
@@ -99,7 +99,7 @@ public class ApiService
     public async Task<bool> RechazarAsync(RechazarRequest request)
     {
         SetAuthHeader();
-        var resp = await _http.PostAsync("/api/guardias/rechazar",
+        var resp = await _http.PostAsync("/api/mob/accesocontrol/Guardias/rechazar",
             new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
         return resp.IsSuccessStatusCode;
     }
@@ -107,7 +107,7 @@ public class ApiService
     public async Task<List<GafeteDisponible>> ObtenerGafetesDisponiblesAsync()
     {
         SetAuthHeader();
-        var resp = await _http.GetAsync("/api/guardias/gafetes/disponibles");
+        var resp = await _http.GetAsync("/api/mob/accesocontrol/Guardias/gafetes/disponibles");
         if (!resp.IsSuccessStatusCode) return [];
         return await resp.Content.ReadFromJsonAsync<List<GafeteDisponible>>(JsonOpts) ?? [];
     }
@@ -116,7 +116,7 @@ public class ApiService
     public async Task<bool> MarcarSalidaAsync(MarcarSalidaRequest request)
     {
         SetAuthHeader();
-        var resp = await _http.PostAsync("/api/guardias/salida",
+        var resp = await _http.PostAsync("/api/mob/accesocontrol/Guardias/salida",
             new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
         return resp.IsSuccessStatusCode;
     }
@@ -131,7 +131,7 @@ public class ApiService
     public async Task<bool> RegistrarFcmTokenAsync(int guardiaId, string fcmToken)
     {
         SetAuthHeader();
-        var resp = await _http.PostAsync("/api/guardias/fcm-token",
+        var resp = await _http.PostAsync("/api/mob/accesocontrol/Guardias/fcm-token",
             new StringContent(
                 JsonSerializer.Serialize(new { guardiaId, fcmToken }),
                 Encoding.UTF8, "application/json"));
@@ -145,7 +145,7 @@ public class ApiService
 
         // NOTA: Ajusta la ruta "/api/guardias/solicitud/{id}" si tu endpoint 
         // en el backend (Controller) tiene un nombre diferente.
-        var resp = await _http.GetAsync($"/api/guardias/solicitudes/{id}");
+        var resp = await _http.GetAsync($"/api/mob/accesocontrol/Guardias/solicitudes/{id}");
 
         if (!resp.IsSuccessStatusCode)
             return null;
