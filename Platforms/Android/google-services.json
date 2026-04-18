@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "630764928546",
+    "project_id": "roclandaccesocontrol",
+    "storage_bucket": "roclandaccesocontrol.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:630764928546:android:11b5659e0a7505752a547b",
+        "android_client_info": {
+          "package_name": "com.rocland.accesocontrol"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-95RuCJDtNKo2fGFQtVu9vasuj3ZO_n4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

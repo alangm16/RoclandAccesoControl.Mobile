@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell x:Class="RoclandAccesoControl.Mobile.AppShell"
+       xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:views="clr-namespace:RoclandAccesoControl.Mobile.Views"
+       Shell.FlyoutBehavior="Disabled"
+       BackgroundColor="#FFFFFF"
+       TitleColor="#1A1A1A">
+
+    <!-- Login (fuera del main, sin NavBar) -->
+    <ShellContent Route="Login"
+                  ContentTemplate="{DataTemplate views:LoginPage}"
+                  Shell.NavBarIsVisible="False"/>
+
+    <!-- Pantalla principal con tab bar propio (sin TabBar nativo del Shell) -->
+    <ShellContent Route="Bitacora"
+                  ContentTemplate="{DataTemplate views:BitacoraPage}"
+                  Shell.NavBarIsVisible="True"
+                  Shell.NavBarHasShadow="False"/>
+
+</Shell>

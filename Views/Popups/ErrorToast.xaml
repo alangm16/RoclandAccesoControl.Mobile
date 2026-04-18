@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="RoclandAccesoControl.Mobile.Views.Popups.ErrorToast"
+               BackgroundColor="Transparent"
+               CanBeDismissedByTappingOutsideOfPopup="True"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               Padding="0"
+               Margin="0">
+
+    <Border BackgroundColor="#1A1A1A"
+            StrokeShape="RoundRectangle 24"
+            Stroke="Transparent"
+            StrokeThickness="0"
+            Padding="16,12"
+            MinimumWidthRequest="220"
+            MaximumWidthRequest="300">
+        <Border.Shadow>
+            <Shadow Brush="#000000" Offset="0,6" Radius="24" Opacity="0.25"/>
+        </Border.Shadow>
+
+        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+
+            <!-- Ícono circular de error -->
+            <Border BackgroundColor="#DC2626"
+                    StrokeShape="RoundRectangle 20"
+                    Stroke="Transparent"
+                    WidthRequest="32"
+                    HeightRequest="32"
+                    VerticalOptions="Center">
+                <Label Text="✕"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="#FFFFFF"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       VerticalTextAlignment="Center"/>
+            </Border>
+
+            <!-- Textos -->
+            <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                <Label x:Name="LblTitulo"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       TextColor="#FFFFFF"
+                       LineBreakMode="NoWrap"/>
+                <Label x:Name="LblMensaje"
+                       FontSize="12"
+                       TextColor="#A3A3A3"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1"/>
+            </VerticalStackLayout>
+
+        </HorizontalStackLayout>
+    </Border>
+</toolkit:Popup>

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="RoclandAccesoControl.Mobile.Views.SolicitudesPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RoclandAccesoControl.Mobile.ViewModels"
+             xmlns:models="clr-namespace:RoclandAccesoControl.Mobile.Models"
+             x:DataType="vm:SolicitudesViewModel"
+             BackgroundColor="#F1F5F1"
+             Shell.NavBarIsVisible="True"
+             Shell.NavBarHasShadow="False">
+
+    <!-- NavBar personalizada -->
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="Auto,*,Auto" Padding="0,0,4,0" ColumnSpacing="10">
+
+            <!-- Logo -->
+            <Image Source="logo_rocland.png" HeightRequest="32" WidthRequest="32"
+                   VerticalOptions="Center"/>
+
+            <!-- Título + estado conexión -->
+            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                <Label Text="Solicitudes" FontSize="17" FontAttributes="Bold"
+                       TextColor="#1A1A1A"/>
+                <Label Text="{Binding EstadoConexion}"
+                       TextColor="{Binding ColorEstadoConexion}"
+                       FontSize="11"/>
+            </VerticalStackLayout>
+
+            <!-- Cerrar sesión -->
+            <ImageButton Grid.Column="2"
+                         Source="icon_logout.png"
+                         Command="{Binding CerrarSesionCommand}"
+                         HeightRequest="28" WidthRequest="28"
+                         VerticalOptions="Center"
+                         BackgroundColor="Transparent"/>
+        </Grid>
+    </Shell.TitleView>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header contador + refresh -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto"
+              BackgroundColor="#FFFFFF"
+              Padding="20,14,16,14">
+
+            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                <Label Text="Pendientes de atención" FontSize="12" TextColor="#6B7280"/>
+                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                    <Label Text="{Binding CantidadPendientes}"
+                           FontSize="30" FontAttributes="Bold" TextColor="#1A1A1A"/>
+                    <Label Text="solicitudes" FontSize="13" TextColor="#6B7280"
+                           VerticalOptions="End" Margin="0,0,0,4"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- Botón Actualizar con icono -->
+            <Border Grid.Column="1"
+                    BackgroundColor="#22C55E"
+                    StrokeShape="RoundRectangle 10"
+                    Stroke="Transparent"
+                    Padding="12,8"
+                    VerticalOptions="Center">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CargarSolicitudesCommand}"/>
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="6">
+                    <Image Source="icon_refresh.png" HeightRequest="16" WidthRequest="16"/>
+                    <Label Text="Actualizar" FontSize="13" TextColor="White" FontAttributes="Bold"/>
+                </HorizontalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Separador sutil -->
+        <BoxView Grid.Row="0" HeightRequest="1" Color="#E5E7EB"
+                 VerticalOptions="End"/>
+
+        <!-- Lista -->
+        <RefreshView Grid.Row="1"
+                     Command="{Binding CargarSolicitudesCommand}"
+                     IsRefreshing="{Binding EstaCargando}"
+                     RefreshColor="#22C55E">
+            <CollectionView ItemsSource="{Binding Solicitudes}">
+
+                <CollectionView.EmptyViewTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout VerticalOptions="Center"
+                                             HorizontalOptions="Center"
+                                             Spacing="14" Padding="40">
+                            <Image Source="icon_check.png" HeightRequest="56" WidthRequest="56"
+                                   HorizontalOptions="Center" Opacity="0.35"/>
+                            <Label Text="Sin solicitudes pendientes"
+                                   FontSize="16" FontAttributes="Bold"
+                                   TextColor="#374151" HorizontalOptions="Center"/>
+                            <Label Text="Desliza hacia abajo para actualizar"
+                                   FontSize="13" TextColor="#9CA3AF"
+                                   HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.EmptyViewTemplate>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SolicitudPendiente">
+                        <Border BackgroundColor="#FFFFFF"
+                                StrokeShape="RoundRectangle 14"
+                                Stroke="#E5E7EB"
+                                StrokeThickness="1"
+                                Margin="16,8,16,0"
+                                Padding="16">
+                            <Border.Shadow>
+                                <Shadow Brush="#000000" Offset="0,2" Radius="8" Opacity="0.05"/>
+                            </Border.Shadow>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SolicitudesViewModel}}, Path=VerDetallCommand}"
+                                    CommandParameter="{Binding .}"/>
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                                <!-- Icono tipo (PNG) -->
+                                <Border BackgroundColor="#F0FDF4"
+                                        StrokeShape="RoundRectangle 12"
+                                        Stroke="Transparent"
+                                        Padding="10"
+                                        VerticalOptions="Center">
+                                    <Image Source="{Binding TipoIconoSource}"
+                                           HeightRequest="26" WidthRequest="26"/>
+                                </Border>
+
+                                <!-- Info central -->
+                                <VerticalStackLayout Grid.Column="1" Spacing="3"
+                                                     VerticalOptions="Center">
+                                    <Label Text="{Binding NombrePersona}"
+                                           FontSize="15" FontAttributes="Bold"
+                                           TextColor="#111827"/>
+                                    <Label Text="{Binding AreaOEmpresa}"
+                                           FontSize="13" TextColor="#6B7280"/>
+                                    <Label Text="{Binding Motivo}"
+                                           FontSize="12" TextColor="#9CA3AF"/>
+                                </VerticalStackLayout>
+
+                                <!-- Derecha: hora + badge -->
+                                <VerticalStackLayout Grid.Column="2" Spacing="6"
+                                                     HorizontalOptions="End"
+                                                     VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="4">
+                                        <Image Source="icon_clock.png"
+                                               HeightRequest="13" WidthRequest="13"
+                                               VerticalOptions="Center" Opacity="0.5"/>
+                                        <Label Text="{Binding HoraFormateada}"
+                                               FontSize="13" FontAttributes="Bold"
+                                               TextColor="#374151"/>
+                                    </HorizontalStackLayout>
+
+                                    <!-- Badge tipo -->
+                                    <Border BackgroundColor="{Binding TipoColor}"
+                                            StrokeShape="RoundRectangle 6"
+                                            Stroke="Transparent"
+                                            Padding="7,3"
+                                            HorizontalOptions="End">
+                                        <Label Text="{Binding TipoRegistro}"
+                                               FontSize="11" TextColor="White"
+                                               FontAttributes="Bold"/>
+                                    </Border>
+
+                                    <!-- Flecha -->
+                                    <Image Source="icon_back.png"
+                                           HeightRequest="16" WidthRequest="16"
+                                           HorizontalOptions="End"
+                                           Rotation="180" Opacity="0.3"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+</ContentPage>

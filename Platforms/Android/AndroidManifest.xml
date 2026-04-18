@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.rocland.accesocontrol" android:versionCode="1" android:versionName="Primera Version">
+	<application android:allowBackup="true" android:supportsRtl="true" android:label="ROCLAND GUARD" android:icon="@mipmap/appicon">
+		<!--
+            MyFirebaseMessagingService recibe tokens nuevos y mensajes FCM.
+            IMPORTANTE: el nombre debe coincidir con el namespace completo de la clase.
+        -->
+		<service android:name="com.rocland.accesocontrol.MyFirebaseMessagingService" android:exported="true">
+			<intent-filter>
+				<action android:name="com.google.firebase.MESSAGING_EVENT" />
+			</intent-filter>
+		</service>
+	</application>
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+	<!-- Necesario para que Plugin.LocalNotification programe notificaciones exactas -->
+	<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+</manifest>

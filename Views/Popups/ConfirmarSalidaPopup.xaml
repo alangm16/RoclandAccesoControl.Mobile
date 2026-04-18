@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="RoclandAccesoControl.Mobile.Views.Popups.ConfirmarSalidaPopup"
+               x:TypeArguments="x:Boolean"
+               BackgroundColor="Transparent"
+               CanBeDismissedByTappingOutsideOfPopup="True"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               Padding="0"
+               Margin="0">
+
+    <Border BackgroundColor="#FFFFFF"
+            StrokeShape="RoundRectangle 24"
+            Stroke="Transparent"
+            StrokeThickness="0"
+            Padding="28,32"
+            WidthRequest="300">
+        <Border.Shadow>
+            <Shadow Brush="#000000" Offset="0,8" Radius="32" Opacity="0.15"/>
+        </Border.Shadow>
+
+        <VerticalStackLayout Spacing="24">
+
+            <!-- Ícono -->
+            <Border BackgroundColor="#FEF2F2"
+                    StrokeShape="RoundRectangle 20"
+                    Stroke="Transparent"
+                    Padding="18"
+                    HorizontalOptions="Center">
+                <Image Source="icon_exit.png" HeightRequest="36" WidthRequest="36"/>
+            </Border>
+
+            <!-- Textos -->
+            <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                <Label Text="Registrar salida"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="#111827"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"/>
+                <Label x:Name="LblNombre"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#DC2626"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"/>
+                <Label x:Name="LblGafete"
+                       FontSize="13"
+                       TextColor="#6B7280"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"/>
+            </VerticalStackLayout>
+
+            <!-- Botones apilados verticalmente -->
+            <VerticalStackLayout Spacing="10">
+
+                <Border BackgroundColor="#DC2626"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        Padding="0,16"
+                        HorizontalOptions="Fill">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnConfirmar"/>
+                    </Border.GestureRecognizers>
+                    <Label Text="Confirmar salida"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           TextColor="#FFFFFF"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+                </Border>
+
+                <Border BackgroundColor="#F3F4F6"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        Padding="0,16"
+                        HorizontalOptions="Fill">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCancelar"/>
+                    </Border.GestureRecognizers>
+                    <Label Text="Cancelar"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           TextColor="#374151"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+                </Border>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </Border>
+</toolkit:Popup>

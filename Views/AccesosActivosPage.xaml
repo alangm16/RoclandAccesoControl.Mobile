@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="RoclandAccesoControl.Mobile.Views.AccesosActivosPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RoclandAccesoControl.Mobile.ViewModels"
+             xmlns:models="clr-namespace:RoclandAccesoControl.Mobile.Models"
+             x:DataType="vm:AccesosActivosViewModel"
+             BackgroundColor="#F1F5F1"
+             Shell.NavBarIsVisible="True"
+             Shell.NavBarHasShadow="False">
+
+    <!-- NavBar personalizada -->
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="Auto,*,Auto" Padding="0,0,4,0" ColumnSpacing="10">
+
+            <Image Source="logo_rocland.png" HeightRequest="32" WidthRequest="32"
+                   VerticalOptions="Center"/>
+
+            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                <Label Text="Dentro ahora" FontSize="17" FontAttributes="Bold"
+                       TextColor="#1A1A1A"/>
+                <Label Text="Personas en instalaciones" FontSize="11" TextColor="#6B7280"/>
+            </VerticalStackLayout>
+
+            <!-- Logout también aquí por coherencia -->
+            <ImageButton Grid.Column="2"
+                         Source="icon_logout.png"
+                         HeightRequest="28" WidthRequest="28"
+                         VerticalOptions="Center"
+                         BackgroundColor="Transparent"
+                         IsVisible="False"/>
+        </Grid>
+    </Shell.TitleView>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header contador + refresh -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto"
+              BackgroundColor="#FFFFFF"
+              Padding="20,14,16,14">
+
+            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                <Label Text="Actualmente dentro" FontSize="12" TextColor="#6B7280"/>
+                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                    <Label Text="{Binding TotalDentro}"
+                           FontSize="30" FontAttributes="Bold" TextColor="#1A1A1A"/>
+                    <Label Text="personas" FontSize="13" TextColor="#6B7280"
+                           VerticalOptions="End" Margin="0,0,0,4"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <Border Grid.Column="1"
+                    BackgroundColor="#22C55E"
+                    StrokeShape="RoundRectangle 10"
+                    Stroke="Transparent"
+                    Padding="12,8"
+                    VerticalOptions="Center">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CargarCommand}"/>
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="6">
+                    <Image Source="icon_refresh.png" HeightRequest="16" WidthRequest="16"/>
+                    <Label Text="Actualizar" FontSize="13" TextColor="White" FontAttributes="Bold"/>
+                </HorizontalStackLayout>
+            </Border>
+        </Grid>
+
+        <BoxView Grid.Row="0" HeightRequest="1" Color="#E5E7EB" VerticalOptions="End"/>
+
+        <!-- Lista -->
+        <RefreshView Grid.Row="1"
+                     Command="{Binding CargarCommand}"
+                     IsRefreshing="{Binding EstaCargando}"
+                     RefreshColor="#22C55E">
+            <CollectionView ItemsSource="{Binding Activos}">
+
+                <CollectionView.EmptyViewTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout VerticalOptions="Center"
+                                             HorizontalOptions="Center"
+                                             Spacing="14" Padding="40">
+                            <Image Source="icon_building.png" HeightRequest="56" WidthRequest="56"
+                                   HorizontalOptions="Center" Opacity="0.3"/>
+                            <Label Text="No hay personas dentro"
+                                   FontSize="16" FontAttributes="Bold"
+                                   TextColor="#374151" HorizontalOptions="Center"/>
+                            <Label Text="Las entradas aparecerán aquí en tiempo real"
+                                   FontSize="13" TextColor="#9CA3AF"
+                                   HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.EmptyViewTemplate>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AccesoActivo">
+                        <Border BackgroundColor="#FFFFFF"
+                                StrokeShape="RoundRectangle 14"
+                                Stroke="#E5E7EB"
+                                StrokeThickness="1"
+                                Margin="16,8,16,0"
+                                Padding="16">
+                            <Border.Shadow>
+                                <Shadow Brush="#000000" Offset="0,2" Radius="8" Opacity="0.05"/>
+                            </Border.Shadow>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                                <!-- Icono tipo (PNG) -->
+                                <Border BackgroundColor="#F0FDF4"
+                                        StrokeShape="RoundRectangle 12"
+                                        Stroke="Transparent"
+                                        Padding="10"
+                                        VerticalOptions="Center">
+                                    <Image Source="{Binding TipoIcono}"
+                                           HeightRequest="26" WidthRequest="26"/>
+                                </Border>
+
+                                <!-- Info central -->
+                                <VerticalStackLayout Grid.Column="1" Spacing="4"
+                                                     VerticalOptions="Center">
+                                    <Label Text="{Binding NombrePersona}"
+                                           FontSize="15" FontAttributes="Bold"
+                                           TextColor="#111827"/>
+                                    <Label Text="{Binding Empresa}"
+                                           FontSize="12" TextColor="#6B7280"/>
+                                    <HorizontalStackLayout Spacing="6">
+                                        <!-- Área -->
+                                        <Image Source="icon_building.png"
+                                               HeightRequest="12" WidthRequest="12"
+                                               VerticalOptions="Center" Opacity="0.4"/>
+                                        <Label Text="{Binding Area}" FontSize="12" TextColor="#9CA3AF"/>
+                                        <Label Text="·" FontSize="12" TextColor="#D1D5DB"/>
+                                        <!-- Tiempo -->
+                                        <Image Source="icon_clock.png"
+                                               HeightRequest="12" WidthRequest="12"
+                                               VerticalOptions="Center" Opacity="0.4"/>
+                                        <Label Text="{Binding TiempoTranscurrido}"
+                                               FontSize="12" TextColor="#F59E0B" FontAttributes="Bold"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <!-- Derecha: gafete + botón salida -->
+                                <VerticalStackLayout Grid.Column="2" Spacing="8"
+                                                     VerticalOptions="Center"
+                                                     HorizontalOptions="End">
+                                    <!-- Gafete badge -->
+                                    <Border BackgroundColor="#F0FDF4"
+                                            StrokeShape="RoundRectangle 8"
+                                            Stroke="#BBF7D0"
+                                            StrokeThickness="1"
+                                            Padding="10,5"
+                                            HorizontalOptions="End">
+                                        <Label Text="{Binding NumeroGafete}"
+                                               FontSize="13" FontAttributes="Bold"
+                                               TextColor="#16A34A"/>
+                                    </Border>
+
+                                    <!-- Botón Salida con icono -->
+                                    <Border BackgroundColor="#FEF2F2"
+                                            StrokeShape="RoundRectangle 10"
+                                            Stroke="#FECACA"
+                                            StrokeThickness="1"
+                                            Padding="10,7">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AccesosActivosViewModel}}, Path=MarcarSalidaCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        </Border.GestureRecognizers>
+                                        <HorizontalStackLayout Spacing="5">
+                                            <Image Source="icon_exit.png"
+                                                   HeightRequest="15" WidthRequest="15"
+                                                   VerticalOptions="Center"/>
+                                            <Label Text="Salida" FontSize="13"
+                                                   FontAttributes="Bold" TextColor="#DC2626"/>
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+</ContentPage>

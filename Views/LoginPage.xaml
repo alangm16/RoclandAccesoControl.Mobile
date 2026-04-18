@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="RoclandAccesoControl.Mobile.Views.LoginPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RoclandAccesoControl.Mobile.ViewModels"
+             x:DataType="vm:LoginViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#F0F4F0">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="0" Spacing="0" VerticalOptions="Fill">
+
+            <!-- Franja superior verde degradada -->
+            <Grid HeightRequest="280" VerticalOptions="Start">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#2D6A2D" Offset="0.0"/>
+                        <GradientStop Color="#4CAF50" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center"
+                                     VerticalOptions="Center">
+                    <!-- Logo PNG -->
+                   <Border
+                        WidthRequest="72"
+                        HeightRequest="72"
+                        StrokeShape="RoundRectangle 8"
+                        HorizontalOptions="Center">
+
+                        <Image
+                            Source="logo_rocland.png"
+                            Aspect="AspectFill"/>
+                    </Border>
+                    <Label Text="ROCLAND"
+                           FontSize="26" FontAttributes="Bold"
+                           TextColor="White" HorizontalOptions="Center"
+                           CharacterSpacing="5"/>
+                    <Label Text="Control de Acceso"
+                           FontSize="13" TextColor="#C8E6C9"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Tarjeta blanca flotante -->
+            <Frame BackgroundColor="White" CornerRadius="24"
+                   Padding="28,32" Margin="20,-32,20,0"
+                   BorderColor="#E0E0E0"
+                   Shadow="{Shadow Brush='#22000000', Offset='0,4', Radius='16'}">
+                <VerticalStackLayout Spacing="20">
+
+                    <Label Text="Iniciar sesión"
+                           FontSize="20" FontAttributes="Bold"
+                           TextColor="#1B3A1B"/>
+
+                    <!-- Usuario -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Usuario" FontSize="12"
+                               TextColor="#5A7A5A" FontAttributes="Bold"/>
+                        <Frame BackgroundColor="#F4F8F4" CornerRadius="10"
+                               Padding="0" BorderColor="#C8DFC8">
+                            <Entry Placeholder="Usuario de guardia"
+                                   PlaceholderColor="#A5BFA5"
+                                   TextColor="#1B3A1B"
+                                   Text="{Binding Usuario}"
+                                   Margin="14,0"
+                                   HeightRequest="50"
+                                   Keyboard="Text"
+                                   ReturnType="Next"/>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <!-- Contraseña -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Contraseña" FontSize="12"
+                               TextColor="#5A7A5A" FontAttributes="Bold"/>
+                        <Frame BackgroundColor="#F4F8F4" CornerRadius="10"
+                               Padding="0" BorderColor="#C8DFC8">
+                            <Entry Placeholder="Contraseña"
+                                   PlaceholderColor="#A5BFA5"
+                                   TextColor="#1B3A1B"
+                                   Text="{Binding Password}"
+                                   IsPassword="True"
+                                   Margin="14,0"
+                                   HeightRequest="50"
+                                   ReturnType="Go"
+                                   ReturnCommand="{Binding IniciarSesionCommand}"/>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <!-- Error -->
+                    <Frame BackgroundColor="#FFF0F0" CornerRadius="8"
+                           Padding="14" BorderColor="#F5A0A0"
+                           IsVisible="{Binding HayError}">
+                        <Label Text="{Binding MensajeError}"
+                               TextColor="#C62828" FontSize="13"/>
+                    </Frame>
+
+                    <!-- Botón Ingresar -->
+                    <Button Text="Ingresar"
+                            Command="{Binding IniciarSesionCommand}"
+                            CornerRadius="12"
+                            HeightRequest="54"
+                            FontSize="16" FontAttributes="Bold"
+                            TextColor="White">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#2D6A2D" Offset="0.0"/>
+                                <GradientStop Color="#4CAF50" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Button.Background>
+                    </Button>
+
+                    <!-- Loading -->
+                    <ActivityIndicator IsRunning="{Binding EstaCargando}"
+                                       IsVisible="{Binding EstaCargando}"
+                                       Color="#4CAF50"
+                                       HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <Label Text="v1.0 · Rocland © 2025"
+                   FontSize="11" TextColor="#8A9E8A"
+                   HorizontalOptions="Center" Margin="0,24,0,32"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
