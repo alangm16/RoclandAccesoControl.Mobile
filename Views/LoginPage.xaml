@@ -119,7 +119,7 @@
                 </VerticalStackLayout>
             </Frame>
 
-            <Label Text="v1.0 · Rocland © 2025"
+            <Label Text="v1.0 · Rocland © 2026"
                    FontSize="11" TextColor="#8A9E8A"
                    HorizontalOptions="Center" Margin="0,24,0,32"/>
 
