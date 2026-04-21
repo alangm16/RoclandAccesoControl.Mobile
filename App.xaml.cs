@@ -29,6 +29,14 @@ public partial class App : Application
         string data = e.Request?.ReturningData ?? string.Empty;
         System.Diagnostics.Debug.WriteLine($"[NOTIF TAP] ReturningData = '{data}' | SesionLista = {_sesionLista}");
 
+        //MainThread.BeginInvokeOnMainThread(async () =>
+        //{
+        //    await App.Current.MainPage.DisplayAlertAsync(
+        //        "Debug Notificación",
+        //        $"Data recibida: '{data}'\nSesión Lista: {_sesionLista}",
+        //        "OK");
+        //});
+
         if (string.IsNullOrEmpty(data))
             return;
 
@@ -43,6 +51,7 @@ public partial class App : Application
                 }
                 catch (Exception ex)
                 {
+                    //await App.Current.MainPage.DisplayAlert("Error de Navegación", ex.Message, "OK");
                     System.Diagnostics.Debug.WriteLine($"[NOTIF TAP] Error navegación: {ex.Message}");
                 }
             });
