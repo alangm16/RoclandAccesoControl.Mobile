@@ -3,7 +3,7 @@
 public static class AppConstants
 {
 
-    public const string BaseUrlAndroid = "https://192.168.1.170:443";
-    public const string BaseUrlWindows = "https://192.168.1.170:443";
+    public const string BaseUrlAndroid = "https://192.168.1.6:443";
+    public const string BaseUrlWindows = "https://192.168.1.6:443";
     public const string SignalRHubPath = "/accesohub";
 }

@@ -3,126 +3,347 @@
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RoclandAccesoControl.Mobile.ViewModels"
+             xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.Maui.Controls"
              x:DataType="vm:LoginViewModel"
              Shell.NavBarIsVisible="False"
              BackgroundColor="#F0F4F0">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="0" Spacing="0" VerticalOptions="Fill">
+    <!-- ════════════════ GRID RAIZ DE DOS CAPAS ════════════════ -->
+    <Grid>
+        <!-- Toast flotante -->
+        <Frame x:Name="ToastFrame"
+               BackgroundColor="#FF5555"
+               CornerRadius="12"
+               Padding="12,8"
+               IsVisible="False"
+               HorizontalOptions="Center"
+               VerticalOptions="Start"
+               Margin="24,40,24,0"
+               HasShadow="True"
+               Opacity="0">
+            <Label x:Name="ToastLabel"
+                   TextColor="White"
+                   FontAttributes="Bold"
+                   FontSize="14"
+                   HorizontalOptions="Center"/>
+        </Frame>
 
-            <!-- Franja superior verde degradada -->
-            <Grid HeightRequest="280" VerticalOptions="Start">
-                <Grid.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#2D6A2D" Offset="0.0"/>
-                        <GradientStop Color="#4CAF50" Offset="1.0"/>
-                    </LinearGradientBrush>
-                </Grid.Background>
+        <!-- ████████████████████████████████████████████████████████ -->
+        <!-- CAPA 0  LOGIN / CREDENCIALES                             -->
+        <!-- ████████████████████████████████████████████████████████ -->
+        <ScrollView x:Name="ScrollLogin">
+            <VerticalStackLayout Padding="0" Spacing="0" VerticalOptions="Fill">
 
-                <VerticalStackLayout Spacing="10" HorizontalOptions="Center"
-                                     VerticalOptions="Center">
-                    <!-- Logo PNG -->
-                   <Border
-                        WidthRequest="72"
-                        HeightRequest="72"
-                        StrokeShape="RoundRectangle 8"
-                        HorizontalOptions="Center">
+                <!-- Franja superior verde degradada -->
+                <Grid HeightRequest="280" VerticalOptions="Start">
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#2D6A2D" Offset="0.0"/>
+                            <GradientStop Color="#4CAF50" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center"
+                                         VerticalOptions="Center">
+                        <Border WidthRequest="72" HeightRequest="72"
+                                StrokeShape="RoundRectangle 8"
+                                HorizontalOptions="Center">
+                            <Image Source="logo_rocland.png" Aspect="AspectFill"/>
+                        </Border>
+                        <Label Text="ROCLAND"
+                               FontSize="26" FontAttributes="Bold"
+                               TextColor="White" HorizontalOptions="Center"
+                               CharacterSpacing="5"/>
+                        <Label Text="Control de Acceso"
+                               FontSize="13" TextColor="#C8E6C9"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Grid>
 
-                        <Image
-                            Source="logo_rocland.png"
-                            Aspect="AspectFill"/>
-                    </Border>
-                    <Label Text="ROCLAND"
-                           FontSize="26" FontAttributes="Bold"
-                           TextColor="White" HorizontalOptions="Center"
-                           CharacterSpacing="5"/>
-                    <Label Text="Control de Acceso"
-                           FontSize="13" TextColor="#C8E6C9"
-                           HorizontalOptions="Center"/>
-                </VerticalStackLayout>
+                <!-- Tarjeta blanca flotante -->
+                <Frame BackgroundColor="White" CornerRadius="24"
+                       Padding="28,24" Margin="20,-32,20,0"
+                       BorderColor="#E0E0E0"
+                       Shadow="{Shadow Brush='#22000000', Offset='0,4', Radius='16'}">
+                    <VerticalStackLayout Spacing="16">
+
+                        <!-- ════════ TABS ════════ -->
+                        <Border BackgroundColor="#E8F5E9"
+                                StrokeThickness="1" Stroke="#C8E6C9"
+                                Padding="4" Margin="0,0,0,4">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="14"/>
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="0">
+                                <!-- Tab Credenciales -->
+                                <Border x:Name="TabCredencialesIndicator"
+                                        Grid.Column="0"
+                                        BackgroundColor="#4CAF50"
+                                        StrokeThickness="0" Padding="0">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10"/>
+                                    </Border.StrokeShape>
+                                    <Button x:Name="BtnTabCredenciales"
+                                            Text="Credenciales"
+                                            TextColor="#1B3A1B" FontAttributes="Bold"
+                                            FontSize="14" BackgroundColor="Transparent"
+                                            HeightRequest="42"
+                                            Clicked="OnTabCredencialesClicked"/>
+                                </Border>
+                                <!-- Tab QR -->
+                                <Border x:Name="TabQRIndicator"
+                                        Grid.Column="1"
+                                        BackgroundColor="Transparent"
+                                        StrokeThickness="0" Padding="0">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10"/>
+                                    </Border.StrokeShape>
+                                    <Button x:Name="BtnTabQR"
+                                            Text="Código QR"
+                                            TextColor="#5A7A5A"
+                                            FontSize="14" BackgroundColor="Transparent"
+                                            HeightRequest="42"
+                                            Clicked="OnTabQRClicked"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- CONTENEDOR CREDENCIALES -->
+                        <VerticalStackLayout x:Name="PanelCredenciales" Spacing="16">
+                            <Label Text="Iniciar sesión"
+                                   FontSize="20" FontAttributes="Bold"
+                                   TextColor="#1B3A1B"/>
+
+                            <!-- Usuario -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Usuario" FontSize="12"
+                                       TextColor="#5A7A5A" FontAttributes="Bold"/>
+                                <Frame BackgroundColor="#F4F8F4" CornerRadius="10"
+                                       Padding="0" BorderColor="#C8DFC8">
+                                    <Entry Placeholder="Usuario de guardia"
+                                           PlaceholderColor="#A5BFA5"
+                                           TextColor="#1B3A1B"
+                                           Text="{Binding Usuario}"
+                                           Margin="14,0"
+                                           HeightRequest="50"
+                                           Keyboard="Text"
+                                           ReturnType="Next"/>
+                                </Frame>
+                            </VerticalStackLayout>
+
+                            <!-- Contraseña -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Contraseña" FontSize="12"
+                                       TextColor="#5A7A5A" FontAttributes="Bold"/>
+                                <Frame BackgroundColor="#F4F8F4" CornerRadius="10"
+                                       Padding="0" BorderColor="#C8DFC8">
+                                    <Entry Placeholder="Contraseña"
+                                           PlaceholderColor="#A5BFA5"
+                                           TextColor="#1B3A1B"
+                                           Text="{Binding Password}"
+                                           IsPassword="True"
+                                           Margin="14,0"
+                                           HeightRequest="50"
+                                           ReturnType="Go"
+                                           ReturnCommand="{Binding IniciarSesionCommand}"/>
+                                </Frame>
+                            </VerticalStackLayout>
+
+                            <!-- Error -->
+                            <Frame BackgroundColor="#FFF0F0" CornerRadius="8"
+                                   Padding="14" BorderColor="#F5A0A0"
+                                   IsVisible="{Binding HayError}">
+                                <Label Text="{Binding MensajeError}"
+                                       TextColor="#C62828" FontSize="13"/>
+                            </Frame>
+
+                            <!-- Botón Ingresar -->
+                            <Button Text="Ingresar"
+                                    Command="{Binding IniciarSesionCommand}"
+                                    CornerRadius="12"
+                                    HeightRequest="54"
+                                    FontSize="16" FontAttributes="Bold"
+                                    TextColor="White">
+                                <Button.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#2D6A2D" Offset="0.0"/>
+                                        <GradientStop Color="#4CAF50" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                            </Button>
+                        </VerticalStackLayout>
+
+                        <!-- PLACEHOLDER QR (cuando está en modo QR pero la cámara no se ha abierto – opcional) -->
+                        <VerticalStackLayout x:Name="PanelQRPlaceholder"
+                                             IsVisible="False"
+                                             Spacing="12"
+                                             HorizontalOptions="Center">
+                            <Image Source="qr_placeholder.png"
+                                   WidthRequest="80" HeightRequest="80"
+                                   Opacity="0.7"/>
+                            <Label Text="Escanea tu credencial QR"
+                                   FontSize="14" TextColor="#5A7A5A"
+                                   HorizontalOptions="Center"/>
+                            <Button Text="Abrir cámara"
+                                    Clicked="OnAbrirCamaraClicked"
+                                    BackgroundColor="#4CAF50"
+                                    TextColor="White"
+                                    CornerRadius="12"
+                                    HeightRequest="44"
+                                    FontAttributes="Bold"/>
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Label Text="v1.0 · Rocland © 2026"
+                       FontSize="11" TextColor="#8A9E8A"
+                       HorizontalOptions="Center" Margin="0,24,0,32"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ████████████████████████████████████████████████████████ -->
+        <!-- CAPA 1  ESCÁNER QR                                        -->
+        <!-- ████████████████████████████████████████████████████████ -->
+        <Grid x:Name="PanelQR"
+              IsVisible="False"
+              BackgroundColor="Transparent">
+
+            <!-- Cámara QR (ocupa todo el fondo) -->
+            <zxing:CameraBarcodeReaderView
+                x:Name="QrScanner"
+                IsDetecting="False"
+                BarcodesDetected="OnQrDetected"
+                HorizontalOptions="Fill"
+                VerticalOptions="Fill" />
+
+            <!-- OVERLAY superior oscuro -->
+            <BoxView Color="#B21B3A1B"
+                     VerticalOptions="Start"
+                     HeightRequest="170"
+                     HorizontalOptions="Fill"/>
+
+            <!-- OVERLAY inferior oscuro -->
+            <BoxView Color="#B21B3A1B"
+                     VerticalOptions="End"
+                     HeightRequest="210"
+                     HorizontalOptions="Fill"/>
+
+            <!-- OVERLAY: laterales del visor (centro) -->
+            <Grid VerticalOptions="Center" HeightRequest="260" HorizontalOptions="Fill">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="260"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
             </Grid>
 
-            <!-- Tarjeta blanca flotante -->
-            <Frame BackgroundColor="White" CornerRadius="24"
-                   Padding="28,32" Margin="20,-32,20,0"
-                   BorderColor="#E0E0E0"
-                   Shadow="{Shadow Brush='#22000000', Offset='0,4', Radius='16'}">
-                <VerticalStackLayout Spacing="20">
+            <!-- VISOR: esquinas verdes -->
+            <Grid VerticalOptions="Center"
+                  HorizontalOptions="Center"
+                  WidthRequest="260" HeightRequest="260">
+                <!-- Superior-izquierda -->
+                <BoxView Color="#4CAF50" WidthRequest="40" HeightRequest="4"
+                         HorizontalOptions="Start" VerticalOptions="Start"/>
+                <BoxView Color="#4CAF50" WidthRequest="4" HeightRequest="40"
+                         HorizontalOptions="Start" VerticalOptions="Start"/>
+                <!-- Superior-derecha -->
+                <BoxView Color="#4CAF50" WidthRequest="40" HeightRequest="4"
+                         HorizontalOptions="End" VerticalOptions="Start"/>
+                <BoxView Color="#4CAF50" WidthRequest="4" HeightRequest="40"
+                         HorizontalOptions="End" VerticalOptions="Start"/>
+                <!-- Inferior-izquierda -->
+                <BoxView Color="#4CAF50" WidthRequest="40" HeightRequest="4"
+                         HorizontalOptions="Start" VerticalOptions="End"/>
+                <BoxView Color="#4CAF50" WidthRequest="4" HeightRequest="40"
+                         HorizontalOptions="Start" VerticalOptions="End"/>
+                <!-- Inferior-derecha -->
+                <BoxView Color="#4CAF50" WidthRequest="40" HeightRequest="4"
+                         HorizontalOptions="End" VerticalOptions="End"/>
+                <BoxView Color="#4CAF50" WidthRequest="4" HeightRequest="40"
+                         HorizontalOptions="End" VerticalOptions="End"/>
+            </Grid>
 
-                    <Label Text="Iniciar sesión"
-                           FontSize="20" FontAttributes="Bold"
-                           TextColor="#1B3A1B"/>
+            <!-- Cabecera flotante (sobre banda superior) -->
+            <VerticalStackLayout VerticalOptions="Start"
+                                 HorizontalOptions="Fill"
+                                 Padding="20,48,20,0"
+                                 Spacing="0">
+                <Label Text="ROCLAND"
+                       TextColor="White"
+                       FontSize="22" FontAttributes="Bold"
+                       HorizontalOptions="Center"/>
+                <Label Text="Escanear credencial QR"
+                       TextColor="#4CAF50"
+                       FontSize="13"
+                       HorizontalOptions="Center"
+                       Margin="0,6,0,0"/>
+            </VerticalStackLayout>
 
-                    <!-- Usuario -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Usuario" FontSize="12"
-                               TextColor="#5A7A5A" FontAttributes="Bold"/>
-                        <Frame BackgroundColor="#F4F8F4" CornerRadius="10"
-                               Padding="0" BorderColor="#C8DFC8">
-                            <Entry Placeholder="Usuario de guardia"
-                                   PlaceholderColor="#A5BFA5"
-                                   TextColor="#1B3A1B"
-                                   Text="{Binding Usuario}"
-                                   Margin="14,0"
-                                   HeightRequest="50"
-                                   Keyboard="Text"
-                                   ReturnType="Next"/>
-                        </Frame>
-                    </VerticalStackLayout>
+            <!-- Botón Flash -->
+            <Button x:Name="BtnFlash"
+                    WidthRequest="40" HeightRequest="40"
+                    BackgroundColor="#33FFFFFF"
+                    BorderColor="Transparent"
+                    ImageSource="flash_off.png"
+                    HorizontalOptions="End"
+                    VerticalOptions="Start"
+                    Margin="0,110,20,0"
+                    Clicked="OnFlashClicked"
+                    ZIndex="10"/>
 
-                    <!-- Contraseña -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Contraseña" FontSize="12"
-                               TextColor="#5A7A5A" FontAttributes="Bold"/>
-                        <Frame BackgroundColor="#F4F8F4" CornerRadius="10"
-                               Padding="0" BorderColor="#C8DFC8">
-                            <Entry Placeholder="Contraseña"
-                                   PlaceholderColor="#A5BFA5"
-                                   TextColor="#1B3A1B"
-                                   Text="{Binding Password}"
-                                   IsPassword="True"
-                                   Margin="14,0"
-                                   HeightRequest="50"
-                                   ReturnType="Go"
-                                   ReturnCommand="{Binding IniciarSesionCommand}"/>
-                        </Frame>
-                    </VerticalStackLayout>
+            <!-- Botón Refrescar cámara -->
+            <Button x:Name="BtnRefrescar"
+                    WidthRequest="40" HeightRequest="40"
+                    BackgroundColor="#33FFFFFF"
+                    BorderColor="Transparent"
+                    ImageSource="refresh.png"
+                    HorizontalOptions="Start"
+                    VerticalOptions="Start"
+                    Margin="20,110,0,0"
+                    Clicked="OnRefrescarClicked"
+                    ZIndex="10"/>
 
-                    <!-- Error -->
-                    <Frame BackgroundColor="#FFF0F0" CornerRadius="8"
-                           Padding="14" BorderColor="#F5A0A0"
-                           IsVisible="{Binding HayError}">
-                        <Label Text="{Binding MensajeError}"
-                               TextColor="#C62828" FontSize="13"/>
-                    </Frame>
+            <!-- Botón Volver (centrado abajo del visor) -->
+            <Button Text="Volver"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    TextColor="White"
+                    BackgroundColor="#4CAF50"
+                    CornerRadius="24"
+                    Padding="16,8"
+                    WidthRequest="140"
+                    HeightRequest="48"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    Margin="0,450,0,0"
+                    Clicked="OnVolverClicked"
+                    ZIndex="20"/>
 
-                    <!-- Botón Ingresar -->
-                    <Button Text="Ingresar"
-                            Command="{Binding IniciarSesionCommand}"
-                            CornerRadius="12"
-                            HeightRequest="54"
-                            FontSize="16" FontAttributes="Bold"
-                            TextColor="White">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#2D6A2D" Offset="0.0"/>
-                                <GradientStop Color="#4CAF50" Offset="1.0"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
-                    </Button>
+            <!-- Pie flotante (sobre banda inferior) -->
+            <VerticalStackLayout VerticalOptions="End"
+                                 HorizontalOptions="Fill"
+                                 Padding="24,0,24,52"
+                                 Spacing="10">
+                <Label Text="Apunta la cámara al código QR de tu credencial"
+                       TextColor="#C8E6C9"
+                       FontSize="13"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"/>
+                <Label x:Name="QrStatusLabel"
+                       Text=""
+                       TextColor="#4CAF50"
+                       FontSize="15" FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       IsVisible="False"/>
+                <Label x:Name="QrErrorLabel"
+                       Text=""
+                       TextColor="#FF5555"
+                       FontSize="13"
+                       HorizontalOptions="Center"
+                       IsVisible="False"/>
+            </VerticalStackLayout>
 
-                    <!-- Loading -->
-                    <ActivityIndicator IsRunning="{Binding EstaCargando}"
-                                       IsVisible="{Binding EstaCargando}"
-                                       Color="#4CAF50"
-                                       HorizontalOptions="Center"/>
-                </VerticalStackLayout>
-            </Frame>
-
-            <Label Text="v1.0 · Rocland © 2026"
-                   FontSize="11" TextColor="#8A9E8A"
-                   HorizontalOptions="Center" Margin="0,24,0,32"/>
-
-        </VerticalStackLayout>
-    </ScrollView>
+        </Grid>
+    </Grid>
 </ContentPage>

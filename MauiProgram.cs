@@ -4,7 +4,7 @@ using Plugin.LocalNotification;
 using RoclandAccesoControl.Mobile.Services;
 using RoclandAccesoControl.Mobile.ViewModels;
 using RoclandAccesoControl.Mobile.Views;
-
+using ZXing.Net.Maui.Controls;
 namespace RoclandAccesoControl.Mobile;
 
 public static class MauiProgram
@@ -17,6 +17,7 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
             .UseLocalNotification()   // Plugin.LocalNotification — solo inicialización, sin iOS
+            .UseBarcodeReader()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

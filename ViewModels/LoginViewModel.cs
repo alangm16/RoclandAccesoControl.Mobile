@@ -69,4 +69,41 @@ public partial class LoginViewModel : BaseViewModel
         MensajeError = msg;
         HayError = true;
     }
+
+    [RelayCommand]
+    public async Task IniciarSesionQrAsync(string qr)
+    {
+        if (string.IsNullOrWhiteSpace(qr))
+        {
+            MostrarError("Código QR vacío.");
+            return;
+        }
+
+        EstaCargando = true;
+        HayError = false;
+
+        try
+        {
+            // Ajusta esta llamada a tu API real
+            var result = await _api.LoginQrAsync(qr);
+
+            if (result is null)
+            {
+                MostrarError("QR no reconocido.");
+                return;
+            }
+
+            _auth.GuardarSesion(result.Token, result.Nombre, result.Id);
+            await _fcmTokenService.RegistrarTokenAsync();
+            await Shell.Current.GoToAsync("//Bitacora");
+        }
+        catch (Exception ex)
+        {
+            MostrarError("Error de conexión al validar QR.");
+        }
+        finally
+        {
+            EstaCargando = false;
+        }
+    }
 }
