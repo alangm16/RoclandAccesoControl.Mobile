@@ -1,13 +1,6 @@
-﻿namespace RoclandAccesoControl.Mobile.Models;
+﻿using System.Text.Json.Serialization;
 
-public class LoginResponse
-{
-    public string Token { get; set; } = string.Empty;
-    public string Nombre { get; set; } = string.Empty;
-    public string Rol { get; set; } = string.Empty;
-    public int Id { get; set; }
-    public DateTime Expiracion { get; set; }
-}
+namespace RoclandAccesoControl.Mobile.Models;
 
 public class SolicitudPendiente
 {
@@ -118,4 +111,46 @@ public class GafeteDisponible
     public int Id { get; set; }
     public string Codigo { get; set; } = string.Empty;
     // Puedes agregar Observaciones si la tabla lo tuviera
+}
+
+public class LoginRequest
+{
+    public string Username { get; set; }
+    public string Password { get; set; }
+}
+
+public class QrLoginRequest
+{
+    public string QRCode { get; set; }
+}
+
+public class LoginResponse
+{
+    // Le decimos que el "accessToken" del JSON se guarde en nuestra propiedad "Token"
+    [JsonPropertyName("accessToken")]
+    public string Token { get; set; }
+
+    [JsonPropertyName("refreshToken")]
+    public string RefreshToken { get; set; }
+
+    [JsonPropertyName("accessTokenExpira")]
+    public DateTime Expiracion { get; set; }
+
+    // Opcional, pero muy útil ya que el backend te lo está mandando:
+    [JsonPropertyName("nombreCompleto")]
+    public string NombreCompleto { get; set; }
+
+    [JsonPropertyName("username")]
+    public string Username { get; set; }
+}
+
+// --- DTOs para Acceso Control ---
+public class MiPerfilResponse
+{
+    public int Id { get; set; } // PerfilId de AccesoControl
+    public int SuperAdminUsuarioId { get; set; }
+    public string NombreCompleto { get; set; }
+    public string TipoPerfil { get; set; } // Guardia, Administrador, etc.
+    public string Turno { get; set; }
+    public string NumeroEmpleado { get; set; }
 }

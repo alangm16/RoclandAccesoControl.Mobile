@@ -38,15 +38,29 @@ public partial class LoginViewModel : BaseViewModel
 
         try
         {
-            var result = await _api.LoginAsync(Usuario, Password);
+            // PASO 1: Login Global en Super Admin
+            var tokenResult = await _api.LoginSuperAdminAsync(Usuario, Password);
 
-            if (result is null)
+            if (string.IsNullOrEmpty(tokenResult?.Token))
             {
                 MostrarError("Usuario o contraseña incorrectos.");
                 return;
             }
 
-            _auth.GuardarSesion(result.Token, result.Nombre, result.Id);
+            // Inyectamos el JWT en el HttpClient para las siguientes peticiones
+            _api.SetAuthToken(tokenResult.Token);
+
+            // PASO 2: Obtener el perfil local de Acceso Control
+            var perfil = await _api.ObtenerMiPerfilAsync();
+
+            if (perfil is null)
+            {
+                MostrarError("No tienes un perfil asignado en Acceso Control.");
+                return;
+            }
+
+            // Guardamos la sesión combinando el Token de SuperAdmin y los datos locales
+            _auth.GuardarSesion(tokenResult.Token, perfil.NombreCompleto, perfil.Id);
 
             await _fcmTokenService.RegistrarTokenAsync();
 
@@ -55,19 +69,12 @@ public partial class LoginViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            var errorMsg = $"Error de conexión";
-            MostrarError(errorMsg);
+            MostrarError("Error de conexión al iniciar sesión.");
         }
         finally
         {
             EstaCargando = false;
         }
-    }
-
-    private void MostrarError(string msg)
-    {
-        MensajeError = msg;
-        HayError = true;
     }
 
     [RelayCommand]
@@ -84,17 +91,32 @@ public partial class LoginViewModel : BaseViewModel
 
         try
         {
-            // Ajusta esta llamada a tu API real
-            var result = await _api.LoginQrAsync(qr);
+            // PASO 1: Login Global por QR en Super Admin
+            var tokenResult = await _api.LoginQrSuperAdminAsync(qr);
 
-            if (result is null)
+            if (string.IsNullOrEmpty(tokenResult?.Token))
             {
-                MostrarError("QR no reconocido.");
+                MostrarError("QR no reconocido o inválido.");
                 return;
             }
 
-            _auth.GuardarSesion(result.Token, result.Nombre, result.Id);
+            // Inyectamos el JWT
+            _api.SetAuthToken(tokenResult.Token);
+
+            // PASO 2: Obtener el perfil local
+            var perfil = await _api.ObtenerMiPerfilAsync();
+
+            if (perfil is null)
+            {
+                MostrarError("No tienes un perfil asignado en Acceso Control.");
+                return;
+            }
+
+            // Guardamos la sesión
+            _auth.GuardarSesion(tokenResult.Token, perfil.NombreCompleto, perfil.Id);
+
             await _fcmTokenService.RegistrarTokenAsync();
+
             await Shell.Current.GoToAsync("//Bitacora");
         }
         catch (Exception ex)
@@ -105,5 +127,11 @@ public partial class LoginViewModel : BaseViewModel
         {
             EstaCargando = false;
         }
+    }
+
+    private void MostrarError(string msg)
+    {
+        MensajeError = msg;
+        HayError = true;
     }
 }
