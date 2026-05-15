@@ -66,14 +66,13 @@ public class AuthStateService
     {
         try
         {
-            var request = new LoginRequest { Username = username, Password = password };
-            var loginResponse = await _apiService.LoginSuperAdminAsync(username, password);
-
-            return await ProcesarSesionExitosa(loginResponse.Token);
+            var loginResponse = await _apiService.LoginDirectoAsync(username, password);
+            if (loginResponse == null || string.IsNullOrEmpty(loginResponse.Token))
+                return false;
+            return await ProcesarSesionExitosa(loginResponse);
         }
-        catch (Exception ex)
+        catch
         {
-            // Manejar error (credenciales inválidas, etc.)
             return false;
         }
     }
@@ -82,37 +81,29 @@ public class AuthStateService
     {
         try
         {
-            // 1. Llamamos a Super Admin. Fíjate que ya no creamos el objeto QrLoginRequest, 
-            // le pasamos el string directo porque así lo definimos en el ApiService.
-            var loginResponse = await _apiService.LoginQrSuperAdminAsync(qrCode);
-
-            // 2. Validamos que realmente nos haya devuelto un token
-            if (string.IsNullOrEmpty(loginResponse?.Token))
+            var loginResponse = await _apiService.LoginQrAsync(qrCode);
+            if (loginResponse == null || string.IsNullOrEmpty(loginResponse.Token))
                 return false;
-
-            // 3. Continuamos con el paso 2 (Obtener perfil y guardar)
-            return await ProcesarSesionExitosa(loginResponse.Token);
+            return await ProcesarSesionExitosa(loginResponse);
         }
-        catch (Exception)
+        catch
         {
             return false;
         }
     }
 
-    private async Task<bool> ProcesarSesionExitosa(string token)
+    private async Task<bool> ProcesarSesionExitosa(LoginResponse loginResponse)
     {
-        // A. Inyectamos el JWT en el HttpClient para que la siguiente petición funcione
-        _apiService.SetAuthToken(token);
+        // Establecer token en el HttpClient
+        _apiService.SetAuthToken(loginResponse.Token);
 
-        // B. Obtenemos el perfil local desde Acceso Control
+        // Obtener el perfil local desde Acceso Control
         var perfil = await _apiService.ObtenerMiPerfilAsync();
-
         if (perfil is null)
             return false;
 
-        // C. Usamos el método que ya tienes creado en AuthStateService para guardar todo
-        GuardarSesion(token, perfil.NombreCompleto, perfil.Id);
-
+        // Guardar sesión (el ID ahora es perfil.PerfilId)
+        GuardarSesion(loginResponse.Token, perfil.NombreCompleto, perfil.PerfilId);
         return true;
     }
 }

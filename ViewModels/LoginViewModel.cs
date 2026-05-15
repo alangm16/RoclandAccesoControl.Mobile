@@ -20,8 +20,8 @@ public partial class LoginViewModel : BaseViewModel
     {
         _api = api;
         _auth = auth;
-        Titulo = "Guardia — Acceso";
         _fcmTokenService = fcmTokenService;
+        Titulo = "Guardia — Acceso";
     }
 
     [RelayCommand]
@@ -38,17 +38,17 @@ public partial class LoginViewModel : BaseViewModel
 
         try
         {
-            // PASO 1: Login Global en Super Admin
-            var tokenResult = await _api.LoginSuperAdminAsync(Usuario, Password);
+            // PASO 1: Login Directo en Super Admin (requiere proyecto y plataforma)
+            var loginResponse = await _api.LoginDirectoAsync(Usuario, Password);
 
-            if (string.IsNullOrEmpty(tokenResult?.Token))
+            if (loginResponse == null || string.IsNullOrEmpty(loginResponse.Token))
             {
                 MostrarError("Usuario o contraseña incorrectos.");
                 return;
             }
 
-            // Inyectamos el JWT en el HttpClient para las siguientes peticiones
-            _api.SetAuthToken(tokenResult.Token);
+            // Inyectamos el JWT en el HttpClient
+            _api.SetAuthToken(loginResponse.Token);
 
             // PASO 2: Obtener el perfil local de Acceso Control
             var perfil = await _api.ObtenerMiPerfilAsync();
@@ -59,9 +59,10 @@ public partial class LoginViewModel : BaseViewModel
                 return;
             }
 
-            // Guardamos la sesión combinando el Token de SuperAdmin y los datos locales
-            _auth.GuardarSesion(tokenResult.Token, perfil.NombreCompleto, perfil.Id);
+            // Guardamos la sesión usando el PerfilId correcto
+            _auth.GuardarSesion(loginResponse.Token, perfil.NombreCompleto, perfil.PerfilId);
 
+            // Registrar token FCM (contra SuperAdmin)
             await _fcmTokenService.RegistrarTokenAsync();
 
             // Navegar al shell principal
@@ -69,6 +70,7 @@ public partial class LoginViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[Login Error] {ex.Message}");
             MostrarError("Error de conexión al iniciar sesión.");
         }
         finally
@@ -91,17 +93,17 @@ public partial class LoginViewModel : BaseViewModel
 
         try
         {
-            // PASO 1: Login Global por QR en Super Admin
-            var tokenResult = await _api.LoginQrSuperAdminAsync(qr);
+            // PASO 1: Login QR en Super Admin
+            var loginResponse = await _api.LoginQrAsync(qr);
 
-            if (string.IsNullOrEmpty(tokenResult?.Token))
+            if (loginResponse == null || string.IsNullOrEmpty(loginResponse.Token))
             {
                 MostrarError("QR no reconocido o inválido.");
                 return;
             }
 
             // Inyectamos el JWT
-            _api.SetAuthToken(tokenResult.Token);
+            _api.SetAuthToken(loginResponse.Token);
 
             // PASO 2: Obtener el perfil local
             var perfil = await _api.ObtenerMiPerfilAsync();
@@ -113,14 +115,16 @@ public partial class LoginViewModel : BaseViewModel
             }
 
             // Guardamos la sesión
-            _auth.GuardarSesion(tokenResult.Token, perfil.NombreCompleto, perfil.Id);
+            _auth.GuardarSesion(loginResponse.Token, perfil.NombreCompleto, perfil.PerfilId);
 
+            // Registrar token FCM
             await _fcmTokenService.RegistrarTokenAsync();
 
             await Shell.Current.GoToAsync("//Bitacora");
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[QR Login Error] {ex.Message}");
             MostrarError("Error de conexión al validar QR.");
         }
         finally

@@ -4,153 +4,189 @@ namespace RoclandAccesoControl.Mobile.Models;
 
 public class SolicitudPendiente
 {
+    [JsonPropertyName("solicitudId")]
     public int SolicitudId { get; set; }
+    [JsonPropertyName("registroId")]
     public int RegistroId { get; set; }
+    [JsonPropertyName("tipoRegistro")]
     public string TipoRegistro { get; set; } = string.Empty;
+    [JsonPropertyName("personaId")]
     public int PersonaId { get; set; }
+    [JsonPropertyName("nombrePersona")]
     public string NombrePersona { get; set; } = string.Empty;
+    [JsonPropertyName("empresa")]
     public string? Empresa { get; set; }
+    [JsonPropertyName("numeroIdentificacion")]
     public string? NumeroIdentificacion { get; set; }
+    [JsonPropertyName("tipoID")]
     public string TipoID { get; set; } = string.Empty;
+    [JsonPropertyName("motivo")]
     public string Motivo { get; set; } = string.Empty;
+    [JsonPropertyName("area")]
     public string? Area { get; set; }
-    public string? Placas { get; set; }     // UnidadPlacas del RegistroProveedor; null para Visitante
+    [JsonPropertyName("placas")]
+    public string? Placas { get; set; }
+    [JsonPropertyName("fechaSolicitud")]
     public DateTime FechaSolicitud { get; set; }
 
-    // Computed para la UI
+    // Propiedades auxiliares (sin mapeo JSON)
     public string TipoIcono => TipoRegistro == "Visitante" ? "icon_visitor.png" : "icon_truck.png";
     public string TipoColor => TipoRegistro == "Visitante" ? "#2563EB" : "#7C3AED";
     public string HoraFormateada => FechaSolicitud.ToLocalTime().ToString("HH:mm");
     public string AreaOEmpresa => TipoRegistro == "Visitante" ? (Area ?? "") : (Empresa ?? "");
-    public string TipoIconoSource => TipoRegistro switch
-    {
-        "Visitante" => "icon_visitor.png",
-        "Proveedor/Cliente" => "icon_truck.png",
-        _ => "icon_visitor.png"
-    };
 }
 
 public class AccesoActivo
 {
+    [JsonPropertyName("registroId")]
     public int RegistroId { get; set; }
+    [JsonPropertyName("tipoRegistro")]
     public string TipoRegistro { get; set; } = string.Empty;
+    [JsonPropertyName("nombrePersona")]
     public string NombrePersona { get; set; } = string.Empty;
+    [JsonPropertyName("empresa")]
     public string? Empresa { get; set; }
+    [JsonPropertyName("numeroGafete")]
     public string NumeroGafete { get; set; } = string.Empty;
+    [JsonPropertyName("fechaEntrada")]
     public DateTime FechaEntrada { get; set; }
+    [JsonPropertyName("area")]
     public string Area { get; set; } = string.Empty;
+    [JsonPropertyName("minutosLlevaDentro")]
+    public double MinutosLlevaDentro { get; set; }
 
-    public double MinutosLlevaDentro { get; set; } 
-
-    // 2. Guardamos la hora en que el celular creó/descargó este objeto en memoria
     private readonly DateTime _horaCreacionLocal = DateTime.UtcNow;
 
     public string TipoIcono => TipoRegistro == "Visitante" ? "icon_visitor.png" : "icon_truck.png";
     public string HoraEntradaFormateada => FechaEntrada.ToLocalTime().ToString("HH:mm");
-    
-    // 3. El cálculo blindado
+
     public string TiempoTranscurrido
     {
         get
         {
             var tiempoEnPantalla = DateTime.UtcNow - _horaCreacionLocal;
             var minutosTotales = MinutosLlevaDentro + tiempoEnPantalla.TotalMinutes;
-
             if (minutosTotales < 0) minutosTotales = 0;
-
             int horas = (int)(minutosTotales / 60);
             int minutos = (int)(minutosTotales % 60);
-
-            if (horas >= 1)
-                return $"{horas}h {minutos}m";
-            return $"{minutos}m";
+            return horas >= 1 ? $"{horas}h {minutos}m" : $"{minutos}m";
         }
     }
 }
 
-// Modificar AprobarRequest para usar GafeteId en lugar de string
 public class AprobarRequest
 {
+    [JsonPropertyName("solicitudId")]
     public int SolicitudId { get; set; }
-    public int GuardiaId { get; set; }
-    public int GafeteId { get; set; }               // <-- Ahora ID del gafete
-    // Podemos mantener NumeroGafete para mostrarlo en UI, pero no es necesario enviarlo
+    [JsonPropertyName("gafeteId")]
+    public int GafeteId { get; set; }
 }
+
 public class RechazarRequest
 {
+    [JsonPropertyName("solicitudId")]
     public int SolicitudId { get; set; }
-    public int GuardiaId { get; set; }
+    [JsonPropertyName("motivo")]
     public string? Motivo { get; set; }
 }
 
 public class MarcarSalidaRequest
 {
+    [JsonPropertyName("registroId")]
     public int RegistroId { get; set; }
+    [JsonPropertyName("tipoRegistro")]
     public string TipoRegistro { get; set; } = string.Empty;
-    public int GuardiaId { get; set; }
 }
 
-// Evento que llega por SignalR
 public class NuevaSolicitudEvent
 {
+    [JsonPropertyName("solicitudId")]
     public int SolicitudId { get; set; }
+    [JsonPropertyName("registroId")]
     public int RegistroId { get; set; }
+    [JsonPropertyName("tipoRegistro")]
     public string TipoRegistro { get; set; } = string.Empty;
+    [JsonPropertyName("nombrePersona")]
     public string NombrePersona { get; set; } = string.Empty;
+    [JsonPropertyName("empresa")]
     public string? Empresa { get; set; }
+    [JsonPropertyName("numeroIdentificacion")]
     public string? NumeroIdentificacion { get; set; }
+    [JsonPropertyName("tipoID")]
     public string TipoID { get; set; } = string.Empty;
+    [JsonPropertyName("motivo")]
     public string Motivo { get; set; } = string.Empty;
+    [JsonPropertyName("area")]
     public string? Area { get; set; }
+    [JsonPropertyName("fechaSolicitud")]
     public DateTime FechaSolicitud { get; set; }
 }
 
-// Modelo para gafete disponible (retornado por API)
 public class GafeteDisponible
 {
+    [JsonPropertyName("id")]
     public int Id { get; set; }
+    [JsonPropertyName("codigo")]
     public string Codigo { get; set; } = string.Empty;
-    // Puedes agregar Observaciones si la tabla lo tuviera
 }
 
 public class LoginRequest
 {
-    public string Username { get; set; }
-    public string Password { get; set; }
+    [JsonPropertyName("username")]
+    public string Username { get; set; } = string.Empty;
+    [JsonPropertyName("password")]
+    public string Password { get; set; } = string.Empty;
 }
 
 public class QrLoginRequest
 {
-    public string QRCode { get; set; }
+    [JsonPropertyName("qrCode")]
+    public string QRCode { get; set; } = string.Empty;
 }
 
 public class LoginResponse
 {
-    // Le decimos que el "accessToken" del JSON se guarde en nuestra propiedad "Token"
     [JsonPropertyName("accessToken")]
-    public string Token { get; set; }
-
+    public string Token { get; set; } = string.Empty;
     [JsonPropertyName("refreshToken")]
-    public string RefreshToken { get; set; }
-
-    [JsonPropertyName("accessTokenExpira")]
+    public string RefreshToken { get; set; } = string.Empty;
+    [JsonPropertyName("expiracion")]
     public DateTime Expiracion { get; set; }
+    [JsonPropertyName("usuario")]
+    public UsuarioTokenDto? Usuario { get; set; }
 
-    // Opcional, pero muy útil ya que el backend te lo está mandando:
-    [JsonPropertyName("nombreCompleto")]
-    public string NombreCompleto { get; set; }
-
-    [JsonPropertyName("username")]
-    public string Username { get; set; }
+    // Propiedades de conveniencia (mapeadas desde Usuario)
+    public string NombreCompleto => Usuario?.NombreCompleto ?? string.Empty;
+    public string Username => Usuario?.Username ?? string.Empty;
+    public int UsuarioId => Usuario?.Id ?? 0;
 }
 
-// --- DTOs para Acceso Control ---
+public class UsuarioTokenDto
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+    [JsonPropertyName("nombreCompleto")]
+    public string NombreCompleto { get; set; } = string.Empty;
+    [JsonPropertyName("username")]
+    public string Username { get; set; } = string.Empty;
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
+}
+
 public class MiPerfilResponse
 {
-    public int Id { get; set; } // PerfilId de AccesoControl
+    [JsonPropertyName("perfilId")]
+    public int PerfilId { get; set; }
+    [JsonPropertyName("superAdminUsuarioId")]
     public int SuperAdminUsuarioId { get; set; }
-    public string NombreCompleto { get; set; }
-    public string TipoPerfil { get; set; } // Guardia, Administrador, etc.
-    public string Turno { get; set; }
-    public string NumeroEmpleado { get; set; }
+    [JsonPropertyName("nombreCompleto")]
+    public string NombreCompleto { get; set; } = string.Empty;
+    [JsonPropertyName("nombreRol")]
+    public string NombreRol { get; set; } = string.Empty;   // antes TipoPerfil
+    [JsonPropertyName("nivelRol")]
+    public int NivelRol { get; set; }
+    [JsonPropertyName("turno")]
+    public string? Turno { get; set; }
+    [JsonPropertyName("numeroEmpleado")]
+    public string? NumeroEmpleado { get; set; }
 }

@@ -66,49 +66,44 @@ public class ApiService
         _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
-    // ─────────────────────────────────────────────────────────────────
     // ENDPOINTS DE SUPER ADMIN (Identidad Global)
-    // ─────────────────────────────────────────────────────────────────
 
-    public async Task<LoginResponse?> LoginSuperAdminAsync(string username, string password)
+    public async Task<LoginResponse?> LoginDirectoAsync(string username, string password)
     {
         try
         {
-            var payload = new { Username = username, Password = password };
-            var response = await _http.PostAsJsonAsync("api/superadmin/auth/login", payload);
-
-            if (!response.IsSuccessStatusCode)
-                return null;
-
-            // 1. LEER COMO TEXTO PURO (Para depurar)
+            var payload = new
+            {
+                Username = username,
+                Password = password,
+                CodigoProyecto = AppConstants.CodigoProyectoAccesoControl,
+                Plataforma = AppConstants.PlataformaMobile
+            };
+            var response = await _http.PostAsJsonAsync("api/superadmin/Auth/login-directo", payload);
+            if (!response.IsSuccessStatusCode) return null;
             var rawJson = await response.Content.ReadAsStringAsync();
-
-            // Pon un punto de interrupción (breakpoint) en la siguiente línea 
-            // o revisa la ventana de "Salida/Output" en Visual Studio
-            System.Diagnostics.Debug.WriteLine($"[JSON SUPERADMIN]: {rawJson}");
-
-            // 2. Intentar deserializar
-            var result = JsonSerializer.Deserialize<LoginResponse>(rawJson, JsonOpts);
-
-            return result;
+            System.Diagnostics.Debug.WriteLine($"[LOGIN DIRECTO] {rawJson}");
+            return JsonSerializer.Deserialize<LoginResponse>(rawJson, JsonOpts);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ERROR JSON]: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[LoginDirecto] Error: {ex.Message}");
             return null;
         }
     }
 
-    public async Task<LoginResponse?> LoginQrSuperAdminAsync(string qrCode)
+    public async Task<LoginResponse?> LoginQrAsync(string qrCode)
     {
         try
         {
-            var payload = new { QRCode = qrCode };
-            var response = await _http.PostAsJsonAsync("api/superadmin/auth/qr-login", payload);
-
-            if (!response.IsSuccessStatusCode)
-                return null;
-
+            var payload = new
+            {
+                QrCode = qrCode,
+                CodigoProyecto = AppConstants.CodigoProyectoAccesoControl,
+                Plataforma = AppConstants.PlataformaMobile
+            };
+            var response = await _http.PostAsJsonAsync("api/superadmin/Auth/login-qr", payload);
+            if (!response.IsSuccessStatusCode) return null;
             return await response.Content.ReadFromJsonAsync<LoginResponse>(JsonOpts);
         }
         catch
@@ -116,6 +111,7 @@ public class ApiService
             return null;
         }
     }
+
 
     // ─────────────────────────────────────────────────────────────────
     // ENDPOINTS DE ACCESO CONTROL (Perfil Local)
@@ -188,11 +184,24 @@ public class ApiService
         return resp.IsSuccessStatusCode;
     }
 
-    public async Task<bool> RegistrarFcmTokenAsync(int guardiaId, string fcmToken)
+    public async Task<bool> RegistrarFcmTokenSuperAdminAsync(string fcmToken, string? deviceToken = null, string? dispositivoInfo = null)
     {
         SetAuthHeader();
-        var resp = await _http.PostAsJsonAsync("/api/mob/accesocontrol/Guardias/fcm-token", new { guardiaId, fcmToken });
-        return resp.IsSuccessStatusCode;
+        var payload = new
+        {
+            FcmToken = fcmToken,
+            DeviceToken = deviceToken,
+            DispositivoInfo = dispositivoInfo ?? DeviceInfo.Name
+        };
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/superadmin/Dispositivos/token", payload);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task<SolicitudPendiente?> ObtenerSolicitudPorIdAsync(int id)

@@ -25,36 +25,23 @@ public class FcmTokenService
 #if ANDROID
         try
         {
-            // Siempre pedimos el token directamente a Firebase para evitar usar uno expirado en caché
             var tcs = new TaskCompletionSource<string>();
-
             FirebaseMessaging.Instance.GetToken()
                 .AddOnCompleteListener(new OnCompleteListenerToken(tcs));
-
-            var token = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(10))
-                    .ConfigureAwait(false);
+            var token = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(token))
             {
-                // Lo guardamos localmente por si lo ocupamos en otro lado
                 Preferences.Set(MyFirebaseMessagingService.PrefKey, token);
-
-                // Lo enviamos a la BD
-                await _api.RegistrarFcmTokenAsync(_auth.GuardiaId, token);
-                System.Diagnostics.Debug.WriteLine($"[FCM] Token registrado con éxito: {token[..10]}...");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("[FCM] Firebase no devolvió un token.");
+                // Registrar contra SuperAdmin (ya no se necesita guardiaId)
+                var ok = await _api.RegistrarFcmTokenSuperAdminAsync(token);
+                System.Diagnostics.Debug.WriteLine(ok ? "[FCM] Registrado en SuperAdmin" : "[FCM] Falló registro");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FCM] Error registrando token: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FCM] Error: {ex.Message}");
         }
-#else
-        System.Diagnostics.Debug.WriteLine("[FCM] Plataforma no soportada.");
-        await Task.CompletedTask;
 #endif
     }
 }

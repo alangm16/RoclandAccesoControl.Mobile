@@ -71,13 +71,8 @@ public partial class AccesosActivosViewModel : BaseViewModel
         if (activo is null) return;
 
         var popup = new ConfirmarSalidaPopup(activo);
-
-        var popupResult =
-            await Shell.Current.CurrentPage.ShowPopupAsync<bool>(popup);
-
-        bool confirmacion = popupResult.Result;
-
-        if (!confirmacion) return;
+        var popupResult = await Shell.Current.CurrentPage.ShowPopupAsync<bool>(popup);
+        if (!popupResult.Result) return;
 
         EstaCargando = true;
         try
@@ -85,13 +80,11 @@ public partial class AccesosActivosViewModel : BaseViewModel
             var ok = await _api.MarcarSalidaAsync(new MarcarSalidaRequest
             {
                 RegistroId = activo.RegistroId,
-                TipoRegistro = activo.TipoRegistro,
-                GuardiaId = _auth.GuardiaId
+                TipoRegistro = activo.TipoRegistro
             });
 
             if (ok)
             {
-                // Envolver la eliminación en el Hilo Principal y buscar por ID
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     var itemARemover = Activos.FirstOrDefault(x => x.RegistroId == activo.RegistroId);

@@ -104,11 +104,9 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
     {
         if (Solicitud is null) return;
 
-        // 1. Verificar datos con modales
         bool datosVerificados = await VerificarDatosAsync();
         if (!datosVerificados) return;
 
-        // 2. Continuar con el flujo original (selección de gafete y confirmación)
         if (GafeteSeleccionado is null)
         {
             var toast = new ErrorToast("Gafete requerido", "Debes seleccionar un gafete disponible.");
@@ -118,8 +116,7 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
 
         var popup = new ConfirmarAprobacionPopup(Solicitud.NombrePersona, GafeteSeleccionado.Codigo);
         var popupResult = await Shell.Current.CurrentPage.ShowPopupAsync<bool>(popup);
-        bool confirmacion = popupResult.Result;
-        if (!confirmacion) return;
+        if (!popupResult.Result) return;
 
         EstaCargando = true;
         try
@@ -127,7 +124,6 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
             var ok = await _api.AprobarAsync(new AprobarRequest
             {
                 SolicitudId = Solicitud.SolicitudId,
-                GuardiaId = _auth.GuardiaId,
                 GafeteId = GafeteSeleccionado.Id
             });
 
@@ -215,12 +211,8 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         if (Solicitud is null) return;
 
         var popup = new RechazarAccesoPopup(Solicitud.NombrePersona);
-
-        var popupResult =
-            await Shell.Current.CurrentPage.ShowPopupAsync<string?>(popup);
-
+        var popupResult = await Shell.Current.CurrentPage.ShowPopupAsync<string?>(popup);
         string? motivo = popupResult.Result;
-
         if (motivo is null) return;
 
         EstaCargando = true;
@@ -229,7 +221,6 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
             var ok = await _api.RechazarAsync(new RechazarRequest
             {
                 SolicitudId = Solicitud.SolicitudId,
-                GuardiaId = _auth.GuardiaId,
                 Motivo = motivo
             });
 
