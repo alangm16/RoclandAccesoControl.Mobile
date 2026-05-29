@@ -21,8 +21,6 @@ public class ApiService
         PropertyNameCaseInsensitive = true
     };
 
-    // 1. SOLUCIÓN CRÍTICA: Quitamos el HttpClient de los parámetros
-    // Solo pedimos IServiceProvider, MAUI sabe cómo inyectar esto automáticamente.
     public ApiService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;

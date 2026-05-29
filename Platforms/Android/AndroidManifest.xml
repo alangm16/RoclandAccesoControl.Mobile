@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.rocland.accesocontrol" android:versionCode="1" android:versionName="Primera Version">
-	<application android:allowBackup="true" android:supportsRtl="true" android:label="ROCLAND GUARD" android:icon="@mipmap/appicon">
+	<application android:allowBackup="true" android:supportsRtl="true" android:label="AppAccesos" android:icon="@mipmap/appicon">
 		<!--
             MyFirebaseMessagingService recibe tokens nuevos y mensajes FCM.
             IMPORTANTE: el nombre debe coincidir con el namespace completo de la clase.

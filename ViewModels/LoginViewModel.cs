@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RoclandAccesoControl.Mobile.Services;
-using RoclandAccesoControl.Mobile.Views;
 
 namespace RoclandAccesoControl.Mobile.ViewModels;
 
