@@ -110,6 +110,21 @@ public class ApiService
         }
     }
 
+    public async Task<LoginResponse?> RefrescarTokenAsync(string refreshToken)
+    {
+        try
+        {
+            var payload = new { RefreshToken = refreshToken };
+            var response = await _http.PostAsJsonAsync("api/superadmin/Auth/refresh", payload);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<LoginResponse>(JsonOpts);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
 
     // ─────────────────────────────────────────────────────────────────
     // ENDPOINTS DE ACCESO CONTROL (Perfil Local)
@@ -139,6 +154,10 @@ public class ApiService
 
     public async Task<List<SolicitudPendiente>> ObtenerSolicitudesAsync()
     {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return new List<SolicitudPendiente>();
+
         SetAuthHeader();
         var resp = await _http.GetAsync("/api/mob/accesocontrol/Guardias/solicitudes");
         if (!resp.IsSuccessStatusCode) return new();
@@ -147,6 +166,10 @@ public class ApiService
 
     public async Task<List<AccesoActivo>> ObtenerActivosAsync()
     {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return new List<AccesoActivo>();
+
         SetAuthHeader();
         var resp = await _http.GetAsync("/api/mob/accesocontrol/Guardias/activos");
         if (!resp.IsSuccessStatusCode) return new();
@@ -155,6 +178,10 @@ public class ApiService
 
     public async Task<bool> AprobarAsync(AprobarRequest request)
     {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return false;
+
         SetAuthHeader();
         var resp = await _http.PostAsJsonAsync("/api/mob/accesocontrol/Guardias/aprobar", request);
         return resp.IsSuccessStatusCode;
@@ -162,6 +189,10 @@ public class ApiService
 
     public async Task<bool> RechazarAsync(RechazarRequest request)
     {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return false;
+
         SetAuthHeader();
         var resp = await _http.PostAsJsonAsync("/api/mob/accesocontrol/Guardias/rechazar", request);
         return resp.IsSuccessStatusCode;
@@ -169,6 +200,10 @@ public class ApiService
 
     public async Task<List<GafeteDisponible>> ObtenerGafetesDisponiblesAsync()
     {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return new List<GafeteDisponible>();
+
         SetAuthHeader();
         var resp = await _http.GetAsync("/api/mob/accesocontrol/Guardias/gafetes/disponibles");
         if (!resp.IsSuccessStatusCode) return new();
@@ -177,6 +212,10 @@ public class ApiService
 
     public async Task<bool> MarcarSalidaAsync(MarcarSalidaRequest request)
     {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return false;
+
         SetAuthHeader();
         var resp = await _http.PostAsJsonAsync("/api/mob/accesocontrol/Guardias/salida", request);
         return resp.IsSuccessStatusCode;
@@ -184,6 +223,10 @@ public class ApiService
 
     public async Task<bool> RegistrarFcmTokenSuperAdminAsync(string fcmToken, string? deviceToken = null, string? dispositivoInfo = null)
     {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return false;
+
         SetAuthHeader();
         var payload = new
         {
@@ -204,6 +247,10 @@ public class ApiService
 
     public async Task<SolicitudPendiente?> ObtenerSolicitudPorIdAsync(int id)
     {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return null;
+
         SetAuthHeader();
         var resp = await _http.GetAsync($"/api/mob/accesocontrol/Guardias/solicitudes/{id}");
         if (!resp.IsSuccessStatusCode) return null;

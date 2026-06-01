@@ -59,7 +59,7 @@ public partial class LoginViewModel : BaseViewModel
             }
 
             // Guardamos la sesión usando el PerfilId correcto
-            _auth.GuardarSesion(loginResponse.Token, perfil.NombreCompleto, perfil.PerfilId);
+            _auth.GuardarSesion(loginResponse.Token, loginResponse.RefreshToken, perfil.NombreCompleto, perfil.PerfilId, loginResponse.Expiracion);
 
             // Registrar token FCM (contra SuperAdmin)
             await _fcmTokenService.RegistrarTokenAsync();
@@ -114,7 +114,7 @@ public partial class LoginViewModel : BaseViewModel
             }
 
             // Guardamos la sesión
-            _auth.GuardarSesion(loginResponse.Token, perfil.NombreCompleto, perfil.PerfilId);
+            _auth.GuardarSesion(loginResponse.Token, loginResponse.RefreshToken, perfil.NombreCompleto, perfil.PerfilId, loginResponse.Expiracion);
 
             // Registrar token FCM
             await _fcmTokenService.RegistrarTokenAsync();
