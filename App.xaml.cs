@@ -1,6 +1,8 @@
-﻿using RoclandAccesoControl.Mobile.Services;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Plugin.LocalNotification;
 using Plugin.LocalNotification.EventArgs;
+using RoclandAccesoControl.Mobile.Models;
+using RoclandAccesoControl.Mobile.Services;
 
 namespace RoclandAccesoControl.Mobile;
 
@@ -108,5 +110,27 @@ public partial class App : Application
         {
             _idNotificacionPendiente = null;
         }
+    }
+
+    protected override async void OnResume()
+    {
+        base.OnResume();
+
+        // 1. Verificamos si pasaron las 8 horas absolutas
+        // GarantizarTokenValidoAsync revisa "sesion_absoluta_expira" y cierra sesión internamente si ya pasó.
+        bool sesionValida = await _auth.GarantizarTokenValidoAsync();
+
+        if (!sesionValida)
+        {
+            // La sesión expiró, forzamos regresar al Login
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.GoToAsync("//Login");
+            });
+            return;
+        }
+
+        // 2. Si la sesión sigue vigente, enviamos un mensaje para actualizar SignalR y la Lista
+        WeakReferenceMessenger.Default.Send(new AppResumedMessage());
     }
 }

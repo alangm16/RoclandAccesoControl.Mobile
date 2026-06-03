@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.AspNetCore.SignalR.Client;
 using Plugin.LocalNotification;
 using Plugin.LocalNotification.Core.Models;
@@ -33,6 +34,19 @@ public partial class SolicitudesViewModel : BaseViewModel
         _signalR.NuevaSolicitudRecibida += OnNuevaSolicitud;
         _signalR.EstadoConexionCambiado += OnEstadoCambiado;
         _signalR.SolicitudResuelta += OnSolicitudResuelta;
+
+        // Escuchar cuando la aplicación despierte
+        WeakReferenceMessenger.Default.Register<AppResumedMessage>(this, async (r, m) =>
+        {
+            // Forzar recarga silenciosa de la lista para traer solicitudes que llegaron mientras la pantalla estaba apagada
+            _ = CargarSolicitudesAsync();
+
+            // Si la conexión de SignalR murió por el reposo del SO, la volvemos a iniciar
+            if (_signalR.Estado != HubConnectionState.Connected)
+            {
+                await ConectarSignalRAsync();
+            }
+        });
     }
 
     [RelayCommand]
@@ -137,6 +151,13 @@ public partial class SolicitudesViewModel : BaseViewModel
             HubConnectionState.Reconnecting => ("◌ Reconectando...", Colors.Orange),
             _ => ("✕ Desconectado", Colors.Red)
         };
+
+        // Si SignalR se acaba de reconectar de forma automática, recargar la lista
+        if (estado == HubConnectionState.Connected)
+        {
+            // Llamada "Fire-and-forget" para no trabar el hilo
+            _ = CargarSolicitudesAsync();
+        }
     }
 
     private static void EnviarNotificacionLocal(SolicitudPendiente s)

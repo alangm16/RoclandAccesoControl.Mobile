@@ -190,3 +190,5 @@ public class MiPerfilResponse
     [JsonPropertyName("numeroEmpleado")]
     public string? NumeroEmpleado { get; set; }
 }
+
+public class AppResumedMessage { }
