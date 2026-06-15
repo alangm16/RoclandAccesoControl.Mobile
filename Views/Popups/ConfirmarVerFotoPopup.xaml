@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="RoclandAccesoControl.Mobile.Views.Popups.ConfirmarVerFotoPopup"
+               x:TypeArguments="x:Boolean"
+               BackgroundColor="#FFFFFFFF"
+               CanBeDismissedByTappingOutsideOfPopup="False">
+
+    <Border BackgroundColor="#FFFFFF"
+            StrokeShape="RoundRectangle 20,20,0,0"
+            Stroke="Transparent"
+            Padding="24,28,24,40">
+        <Border.Shadow>
+            <Shadow Brush="#000000" Offset="0,-4" Radius="20" Opacity="0.1"/>
+        </Border.Shadow>
+
+        <VerticalStackLayout Spacing="24">
+
+            <!-- Ícono -->
+            <Border BackgroundColor="#EFF6FF"
+                    StrokeShape="RoundRectangle 20"
+                    Stroke="Transparent"
+                    Padding="16"
+                    HorizontalOptions="Center">
+                <Image Source="icon_camera.png" HeightRequest="32" WidthRequest="32"/>
+            </Border>
+
+            <!-- Textos -->
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Label Text="Foto registrada"
+                       FontSize="18" FontAttributes="Bold"
+                       TextColor="#111827" HorizontalOptions="Center"/>
+                <Label Text="Esta persona ya tiene foto de identificación."
+                       FontSize="14" TextColor="#374151"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                <Label Text="¿Desea verla antes de continuar?"
+                       FontSize="14" FontAttributes="Bold"
+                       TextColor="#2563EB" HorizontalOptions="Center"
+                       Margin="0,4,0,0"/>
+            </VerticalStackLayout>
+
+            <!-- Botones -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Border BackgroundColor="#F3F4F6"
+                        StrokeShape="RoundRectangle 12"
+                        Stroke="Transparent"
+                        Padding="0,18">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnContinuarSinVer"/>
+                    </Border.GestureRecognizers>
+                    <Label Text="Continuar sin ver"
+                           FontSize="15" FontAttributes="Bold"
+                           TextColor="#374151" HorizontalOptions="Center"/>
+                </Border>
+
+                <Border Grid.Column="1"
+                        BackgroundColor="#2563EB"
+                        StrokeShape="RoundRectangle 12"
+                        Stroke="Transparent"
+                        Padding="0,18">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnVerFoto"/>
+                    </Border.GestureRecognizers>
+                    <Border.Shadow>
+                        <Shadow Brush="#2563EB" Offset="0,4" Radius="12" Opacity="0.3"/>
+                    </Border.Shadow>
+                    <Label Text="Ver foto"
+                           FontSize="15" FontAttributes="Bold"
+                           TextColor="White" HorizontalOptions="Center"/>
+                </Border>
+            </Grid>
+
+        </VerticalStackLayout>
+    </Border>
+</toolkit:Popup>

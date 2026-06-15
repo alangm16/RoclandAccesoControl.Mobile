@@ -28,12 +28,16 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
     [ObservableProperty] private GafeteDisponible? _gafeteSeleccionado;
     [ObservableProperty] private bool _accionCompletada;
 
+    private bool _datosFrescosCargados = false;
+
     public string SolicitudIdParam
     {
         set
         {
-            if (int.TryParse(value, out int id))
+            if (int.TryParse(value, out int id) && !_datosFrescosCargados)
             {
+                _datosFrescosCargados = true;
+                _ = CargarGafetesAsync();
                 _ = CargarSolicitudDesdeApiAsync(id);
             }
         }
@@ -50,8 +54,13 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
 
     partial void OnSolicitudChanged(SolicitudPendiente? value)
     {
-        if (value != null)
+        // 2. Si recibimos la solicitud desde la navegación, recargamos la versión fresca desde la API
+        if (value != null && !_datosFrescosCargados)
+        {
+            _datosFrescosCargados = true;
             _ = CargarGafetesAsync();
+            _ = CargarSolicitudDesdeApiAsync(value.SolicitudId);
+        }
     }
 
     private async Task CargarGafetesAsync()
@@ -111,32 +120,25 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
 
         if (!Solicitud.TieneFoto)
         {
-            // No tiene foto → ofrecer tomarla
-            var tomarFoto = await Shell.Current.DisplayAlert(
-                "Foto requerida",
-                "Esta persona no tiene foto de identificación. ¿Desea capturarla ahora?",
-                "Sí, tomar foto", "Cancelar");
-
-            if (!tomarFoto) return;
+            var fotoPopup = new FotoRequeridaPopup();
+            var fotoResult = await Shell.Current.CurrentPage.ShowPopupAsync<bool>(fotoPopup);
+            if (!fotoResult.Result) return;
 
             bool fotoSubida = await TomarFotoYSubirAsync();
             if (!fotoSubida)
             {
-                await Shell.Current.DisplayAlert("Cancelado",
-                    "No se pudo registrar la foto. La aprobación fue cancelada.", "OK");
+                var toast = new ErrorToast("Cancelado", "No se pudo registrar la foto. La aprobación fue cancelada.");
+                await Shell.Current.CurrentPage.ShowPopupAsync(toast);
                 return;
             }
             Solicitud.TieneFoto = true;
         }
         else
         {
-            // Ya tiene foto → mostrarla para que el guardia la verifique visualmente
-            var verFoto = await Shell.Current.DisplayAlert(
-                "Foto registrada",
-                "Esta persona ya tiene foto de identificación. ¿Desea verla antes de continuar?",
-                "Ver foto", "Continuar sin ver");
-
-            if (verFoto)
+            // Ya tiene foto → preguntar si quiere verla
+            var popupC = new ConfirmarVerFotoPopup();
+            var verFotoC = await Shell.Current.CurrentPage.ShowPopupAsync<bool>(popupC);
+            if (verFotoC.Result)
                 await VerFotoAsync();
         }
 
@@ -218,20 +220,20 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
 
             if (success)
             {
-                await Shell.Current.DisplayAlert("Éxito",
+                await Shell.Current.DisplayAlertAsync("Éxito",
                     "Foto de credencial guardada correctamente", "OK");
                 return true;
             }
             else
             {
-                await Shell.Current.DisplayAlert("Error",
+                await Shell.Current.DisplayAlertAsync("Error",
                     "No se pudo guardar la foto en el servidor", "OK");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error",
+            await Shell.Current.DisplayAlertAsync("Error",
                 $"Error al capturar la credencial: {ex.Message}", "OK");
             return false;
         }
@@ -364,22 +366,38 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         });
     }
 
+
     [RelayCommand]
     private async Task VerFotoAsync()
     {
         if (Solicitud == null) return;
 
+        // Si ya sabemos que tiene foto, no recargamos
+        if (Solicitud.TieneFoto && Solicitud.PersonaId > 0)
+        {
+            await MostrarFotoDesdeApi();
+            return;
+        }
+
+        // Solo recargamos si realmente no tenemos PersonaId
         if (Solicitud.PersonaId == 0)
         {
             var recargada = await _api.ObtenerSolicitudPorIdAsync(Solicitud.SolicitudId);
-            if (recargada?.PersonaId > 0) Solicitud = recargada;
-            else
+            if (recargada != null)
             {
-                await Shell.Current.DisplayAlertAsync("Error", "No se pudo identificar a la persona.", "OK");
-                return;
+                // Conservamos el valor de TieneFoto si ya lo habíamos establecido localmente
+                bool yaTieneFotoLocal = Solicitud.TieneFoto;
+                Solicitud = recargada;
+                if (yaTieneFotoLocal && !Solicitud.TieneFoto)
+                    Solicitud.TieneFoto = true; // forzamos la persistencia local
             }
         }
 
+        await MostrarFotoDesdeApi();
+    }
+
+    private async Task MostrarFotoDesdeApi()
+    {
         try
         {
             var stream = await _api.ObtenerFotoPersonaAsync(Solicitud.PersonaId);

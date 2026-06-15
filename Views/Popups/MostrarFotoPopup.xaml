@@ -4,23 +4,59 @@
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
                x:Class="RoclandAccesoControl.Mobile.Views.Popups.MostrarFotoPopup"
                CanBeDismissedByTappingOutsideOfPopup="True"
-               BackgroundColor="#CC000000">
+               BackgroundColor="#FFFFFFFF">
+
     <Border BackgroundColor="#FFFFFF"
-            StrokeShape="RoundRectangle 20"
+            StrokeShape="RoundRectangle 20,20,0,0"
             Stroke="Transparent"
-            Padding="16">
-        <VerticalStackLayout Spacing="12">
+            Padding="24,28,24,40">
+        <Border.Shadow>
+            <Shadow Brush="#000000" Offset="0,-4" Radius="20" Opacity="0.12"/>
+        </Border.Shadow>
+
+        <VerticalStackLayout Spacing="20">
+
+            <!-- Ícono superior -->
+            <Border BackgroundColor="#F0FDF4"
+                    StrokeShape="RoundRectangle 20"
+                    Stroke="Transparent"
+                    Padding="16"
+                    HorizontalOptions="Center">
+                <Image Source="icon_camera.png" HeightRequest="32" WidthRequest="32"/>
+            </Border>
+
             <Label Text="Foto de identificación"
-                   FontSize="16" FontAttributes="Bold"
+                   FontSize="18" FontAttributes="Bold"
+                   TextColor="#111827"
                    HorizontalOptions="Center"/>
-            <Image x:Name="FotoImage"
-                   HeightRequest="250"
-                   Aspect="AspectFit"/>
-            <Button Text="Cerrar"
-                    BackgroundColor="#16A34A"
-                    TextColor="White"
-                    CornerRadius="10"
-                    Command="{Binding CerrarCommand}"/>
+
+            <!-- Imagen con borde redondeado -->
+            <Border StrokeShape="RoundRectangle 12"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    BackgroundColor="#F9FAFB">
+                <Image x:Name="FotoImage"
+                       HeightRequest="260"
+                       Aspect="AspectFit"/>
+            </Border>
+
+            <!-- Botón cerrar -->
+            <Border BackgroundColor="#16A34A"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    Padding="0,18">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CerrarCommand}"/>
+                </Border.GestureRecognizers>
+                <Border.Shadow>
+                    <Shadow Brush="#16A34A" Offset="0,4" Radius="12" Opacity="0.3"/>
+                </Border.Shadow>
+                <Label Text="Cerrar"
+                       FontSize="15" FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center"/>
+            </Border>
+
         </VerticalStackLayout>
     </Border>
 </toolkit:Popup>
