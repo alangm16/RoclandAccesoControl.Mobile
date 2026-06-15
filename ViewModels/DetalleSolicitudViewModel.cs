@@ -19,6 +19,7 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
     private readonly ApiService _api;
     private readonly AuthStateService _auth;
     private readonly IMediaPicker _mediaPicker;
+    private readonly IDocumentScannerService _documentScanner;
 
     public bool NoHayGafetes => GafetesDisponibles.Count == 0;
 
@@ -38,11 +39,12 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         }
     }
 
-    public DetalleSolicitudViewModel(ApiService api, AuthStateService auth, IMediaPicker mediaPicker)
+    public DetalleSolicitudViewModel(ApiService api, AuthStateService auth, IMediaPicker mediaPicker, IDocumentScannerService documentScanner)
     {
         _api = api;
         _auth = auth;
         _mediaPicker = mediaPicker;
+        _documentScanner = documentScanner;
         Titulo = "Detalle de Solicitud";
     }
 
@@ -107,33 +109,38 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
     {
         if (Solicitud is null) return;
 
-        // Si la persona NO tiene foto, pedir captura antes de continuar
         if (!Solicitud.TieneFoto)
         {
+            // No tiene foto → ofrecer tomarla
             var tomarFoto = await Shell.Current.DisplayAlert(
                 "Foto requerida",
                 "Esta persona no tiene foto de identificación. ¿Desea capturarla ahora?",
-                "Sí, tomar foto",
-                "Cancelar");
+                "Sí, tomar foto", "Cancelar");
 
-            if (tomarFoto)
+            if (!tomarFoto) return;
+
+            bool fotoSubida = await TomarFotoYSubirAsync();
+            if (!fotoSubida)
             {
-                bool fotoSubida = await TomarFotoYSubirAsync();
-                if (!fotoSubida)
-                {
-                    await Shell.Current.DisplayAlert("Cancelado", "No se pudo registrar la foto. La aprobación fue cancelada.", "OK");
-                    return;
-                }
-                // Actualizar la propiedad local para que no vuelva a pedir en esta sesión
-                Solicitud.TieneFoto = true;
+                await Shell.Current.DisplayAlert("Cancelado",
+                    "No se pudo registrar la foto. La aprobación fue cancelada.", "OK");
+                return;
             }
-            else
-            {
-                return; // El guardia canceló
-            }
+            Solicitud.TieneFoto = true;
+        }
+        else
+        {
+            // Ya tiene foto → mostrarla para que el guardia la verifique visualmente
+            var verFoto = await Shell.Current.DisplayAlert(
+                "Foto registrada",
+                "Esta persona ya tiene foto de identificación. ¿Desea verla antes de continuar?",
+                "Ver foto", "Continuar sin ver");
+
+            if (verFoto)
+                await VerFotoAsync();
         }
 
-        // A partir de aquí, la persona tiene foto (ya sea porque ya la tenía o se acaba de subir)
+        // Continúa con verificación de datos y aprobación...
         bool datosVerificados = await VerificarDatosAsync();
         if (!datosVerificados) return;
 
@@ -193,40 +200,39 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
                 var recargada = await _api.ObtenerSolicitudPorIdAsync(Solicitud.SolicitudId);
                 if (recargada == null || recargada.PersonaId == 0)
                 {
-                    await Shell.Current.DisplayAlertAsync("Error", "No se pudo identificar a la persona.", "OK");
+                    await Shell.Current.DisplayAlertAsync("Error",
+                        "No se pudo identificar a la persona.", "OK");
                     return false;
                 }
                 Solicitud = recargada;
             }
 
-            var photo = await _mediaPicker.CapturePhotoAsync(new MediaPickerOptions
-            {
-                Title = "Tomar foto de identificación"
-            });
+            // ← Aquí va la magia: ML Kit abre su propia UI con detección de bordes
+            byte[]? imageBytes = await _documentScanner.EscanearDocumentoAsync();
 
-            if (photo == null) return false;
-
-            using var stream = await photo.OpenReadAsync();
-            using var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream);
-            byte[] imageBytes = memoryStream.ToArray();
+            if (imageBytes == null) return false; // Usuario canceló
 
             EstaCargando = true;
-            bool success = await _api.SubirFotoPersonaAsync(Solicitud!.PersonaId, imageBytes, photo.ContentType);
+            bool success = await _api.SubirFotoPersonaAsync(
+                Solicitud!.PersonaId, imageBytes, "image/jpeg");
+
             if (success)
             {
-                await Shell.Current.DisplayAlert("Éxito", "Foto guardada correctamente", "OK");
+                await Shell.Current.DisplayAlert("Éxito",
+                    "Foto de credencial guardada correctamente", "OK");
                 return true;
             }
             else
             {
-                await Shell.Current.DisplayAlert("Error", "No se pudo guardar la foto en el servidor", "OK");
+                await Shell.Current.DisplayAlert("Error",
+                    "No se pudo guardar la foto en el servidor", "OK");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", $"Error al capturar la foto: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlert("Error",
+                $"Error al capturar la credencial: {ex.Message}", "OK");
             return false;
         }
         finally

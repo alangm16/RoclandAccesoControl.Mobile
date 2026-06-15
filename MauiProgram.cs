@@ -47,6 +47,11 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<IMediaPicker>(MediaPicker.Default);
 
+#if ANDROID
+        builder.Services.AddSingleton<IDocumentScannerService,
+            RoclandAccesoControl.Mobile.Platforms.Android.DocumentScannerService>();
+#endif
+
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
