@@ -1,7 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Gms.Extensions; // Espacio de nombres correcto para .AsAsync()
-using Net.Google.MLKit.DocumentScanner;
 using Net.Google.MLKit.Vision.DocumentScanner;
 using RoclandAccesoControl.Mobile.Services;
 using System;

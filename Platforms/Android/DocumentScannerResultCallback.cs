@@ -1,6 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
-using Net.Google.MlKit.DocumentScanner;
+using Net.Google.MLKit.Vision.DocumentScanner;
 
 namespace RoclandAccesoControl.Mobile.Platforms.Android;
 
@@ -36,7 +36,7 @@ public static class DocumentScannerResultCallback
 
         try
         {
-            var scanResult = GmsDocumentScanningResult.GetFromActivityResultIntent(data);
+            var scanResult = GmsDocumentScanningResult.FromActivityResultIntent(data);
             var pages = scanResult?.Pages;
 
             if (pages == null || pages.Count == 0)
