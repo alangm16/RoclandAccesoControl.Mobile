@@ -256,4 +256,42 @@ public class ApiService
         if (!resp.IsSuccessStatusCode) return null;
         return await resp.Content.ReadFromJsonAsync<SolicitudPendiente>(JsonOpts);
     }
+
+    // Subir foto de identificación
+
+    public async Task<bool> SubirFotoPersonaAsync(int personaId, byte[] imageBytes, string contentType)
+    {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return false;
+
+        SetAuthHeader();
+        using var content = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(imageBytes);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        content.Add(fileContent, "file", "foto.jpg");
+
+        var response = await _http.PutAsync($"/api/mob/accesocontrol/Guardias/personas/{personaId}/foto", content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"Error 400: {errorBody}");
+            return false;
+        }
+
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<Stream?> ObtenerFotoPersonaAsync(int personaId)
+    {
+        var authService = _serviceProvider.GetService<AuthStateService>();
+        if (authService != null && !await authService.GarantizarTokenValidoAsync())
+            return null;
+        SetAuthHeader();
+        var response = await _http.GetAsync($"/api/mob/accesocontrol/Guardias/personas/{personaId}/foto");
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadAsStreamAsync();
+        return null;
+    }
 }

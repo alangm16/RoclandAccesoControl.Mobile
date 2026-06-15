@@ -28,6 +28,8 @@ public class SolicitudPendiente
     public string? Placas { get; set; }
     [JsonPropertyName("fechaSolicitud")]
     public DateTime FechaSolicitud { get; set; }
+    [JsonPropertyName("tieneFoto")]
+    public bool TieneFoto { get; set; }
 
     // Propiedades auxiliares (sin mapeo JSON)
     public string TipoIcono => TipoRegistro == "Visitante" ? "icon_visitor.png" : "icon_truck.png";
@@ -104,6 +106,8 @@ public class NuevaSolicitudEvent
     public int SolicitudId { get; set; }
     [JsonPropertyName("registroId")]
     public int RegistroId { get; set; }
+    [JsonPropertyName("personaId")]
+    public int PersonaId { get; set; }
     [JsonPropertyName("tipoRegistro")]
     public string TipoRegistro { get; set; } = string.Empty;
     [JsonPropertyName("nombrePersona")]
@@ -120,6 +124,9 @@ public class NuevaSolicitudEvent
     public string? Area { get; set; }
     [JsonPropertyName("fechaSolicitud")]
     public DateTime FechaSolicitud { get; set; }
+
+    [JsonPropertyName("tieneFoto")]
+    public bool TieneFoto { get; set; }
 }
 
 public class GafeteDisponible

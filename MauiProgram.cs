@@ -45,6 +45,8 @@ public static class MauiProgram
         builder.Services.AddTransient<AccesosActivosPage>();
         builder.Services.AddSingleton<BitacoraPage>();
 
+        builder.Services.AddSingleton<IMediaPicker>(MediaPicker.Default);
+
 #if DEBUG
         builder.Logging.AddDebug();
 #endif

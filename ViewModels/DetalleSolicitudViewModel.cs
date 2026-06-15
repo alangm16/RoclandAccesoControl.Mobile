@@ -7,6 +7,8 @@ using RoclandAccesoControl.Mobile.Services;
 using RoclandAccesoControl.Mobile.Views;
 using RoclandAccesoControl.Mobile.Views.Popups;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.Media;
+using Microsoft.Maui.Storage;
 
 namespace RoclandAccesoControl.Mobile.ViewModels;
 
@@ -16,6 +18,8 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
 {
     private readonly ApiService _api;
     private readonly AuthStateService _auth;
+    private readonly IMediaPicker _mediaPicker;
+
     public bool NoHayGafetes => GafetesDisponibles.Count == 0;
 
     [ObservableProperty] private SolicitudPendiente? _solicitud;
@@ -34,14 +38,14 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         }
     }
 
-    public DetalleSolicitudViewModel(ApiService api, AuthStateService auth)
+    public DetalleSolicitudViewModel(ApiService api, AuthStateService auth, IMediaPicker mediaPicker)
     {
         _api = api;
         _auth = auth;
+        _mediaPicker = mediaPicker;
         Titulo = "Detalle de Solicitud";
     }
 
-    // Cargar gafetes cuando se asigna la solicitud o al navegar con id
     partial void OnSolicitudChanged(SolicitudPendiente? value)
     {
         if (value != null)
@@ -54,7 +58,7 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         {
             var lista = await _api.ObtenerGafetesDisponiblesAsync();
             GafetesDisponibles = new ObservableCollection<GafeteDisponible>(lista);
-            OnPropertyChanged(nameof(NoHayGafetes)); // <-- Añadir esto
+            OnPropertyChanged(nameof(NoHayGafetes));
         }
         catch (Exception ex)
         {
@@ -70,13 +74,8 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
             return;
 
         var popup = new GafeteSelectorPopup(GafetesDisponibles);
-
-        var popupResult =
-            await Shell.Current.CurrentPage
-                .ShowPopupAsync<GafeteDisponible?>(popup);
-
+        var popupResult = await Shell.Current.CurrentPage.ShowPopupAsync<GafeteDisponible?>(popup);
         var seleccionado = popupResult.Result;
-
         if (seleccionado is not null)
             GafeteSeleccionado = seleccionado;
     }
@@ -99,11 +98,42 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // FLUJO DE APROBACIÓN CON VERIFICACIÓN DE FOTO
+    // ─────────────────────────────────────────────────────────────────
+
     [RelayCommand]
     private async Task AprobarAsync()
     {
         if (Solicitud is null) return;
 
+        // Si la persona NO tiene foto, pedir captura antes de continuar
+        if (!Solicitud.TieneFoto)
+        {
+            var tomarFoto = await Shell.Current.DisplayAlert(
+                "Foto requerida",
+                "Esta persona no tiene foto de identificación. ¿Desea capturarla ahora?",
+                "Sí, tomar foto",
+                "Cancelar");
+
+            if (tomarFoto)
+            {
+                bool fotoSubida = await TomarFotoYSubirAsync();
+                if (!fotoSubida)
+                {
+                    await Shell.Current.DisplayAlert("Cancelado", "No se pudo registrar la foto. La aprobación fue cancelada.", "OK");
+                    return;
+                }
+                // Actualizar la propiedad local para que no vuelva a pedir en esta sesión
+                Solicitud.TieneFoto = true;
+            }
+            else
+            {
+                return; // El guardia canceló
+            }
+        }
+
+        // A partir de aquí, la persona tiene foto (ya sea porque ya la tenía o se acaba de subir)
         bool datosVerificados = await VerificarDatosAsync();
         if (!datosVerificados) return;
 
@@ -150,6 +180,66 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
             EstaCargando = false;
         }
     }
+
+    /// <summary>
+    /// Captura una foto usando la cámara y la sube al backend.
+    /// </summary>
+    private async Task<bool> TomarFotoYSubirAsync()
+    {
+        try
+        {
+            if (Solicitud!.PersonaId == 0)
+            {
+                var recargada = await _api.ObtenerSolicitudPorIdAsync(Solicitud.SolicitudId);
+                if (recargada == null || recargada.PersonaId == 0)
+                {
+                    await Shell.Current.DisplayAlertAsync("Error", "No se pudo identificar a la persona.", "OK");
+                    return false;
+                }
+                Solicitud = recargada;
+            }
+
+            var photo = await _mediaPicker.CapturePhotoAsync(new MediaPickerOptions
+            {
+                Title = "Tomar foto de identificación"
+            });
+
+            if (photo == null) return false;
+
+            using var stream = await photo.OpenReadAsync();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            byte[] imageBytes = memoryStream.ToArray();
+
+            EstaCargando = true;
+            bool success = await _api.SubirFotoPersonaAsync(Solicitud!.PersonaId, imageBytes, photo.ContentType);
+            if (success)
+            {
+                await Shell.Current.DisplayAlert("Éxito", "Foto guardada correctamente", "OK");
+                return true;
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Error", "No se pudo guardar la foto en el servidor", "OK");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Error al capturar la foto: {ex.Message}", "OK");
+            return false;
+        }
+        finally
+        {
+            EstaCargando = false;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // RESTO DE MÉTODOS (VerificarDatosAsync, MostrarCancelacionVerificacion,
+    // RechazarAsync, RegresarAsync, NavegarAtrasOSolicitudesAsync)
+    // se mantienen igual, solo agregamos el using de Microsoft.Maui.Media
+    // ─────────────────────────────────────────────────────────────────
 
     private async Task<bool> VerificarDatosAsync()
     {
@@ -204,7 +294,6 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         await Shell.Current.CurrentPage.ShowPopupAsync(toast);
     }
 
-
     [RelayCommand]
     private async Task RechazarAsync()
     {
@@ -245,37 +334,61 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
     [RelayCommand]
     private async Task RegresarAsync() => await NavegarAtrasOSolicitudesAsync();
 
-    // ──── Navegación inteligente hacia atrás ──────────────────────────
     private async Task NavegarAtrasOSolicitudesAsync()
     {
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
             try
             {
-                // Pequeño retardo para asegurar que la UI termine cualquier animación
                 await Task.Delay(100);
-
                 var navigationStack = Shell.Current.Navigation.NavigationStack;
                 bool hayPaginaAnteriorValida = navigationStack.Count >= 2 &&
                                                 navigationStack[^2] is not DetalleSolicitudPage;
 
                 if (hayPaginaAnteriorValida)
-                {
-                    // Flujo normal: regresar a la página anterior (normalmente SolicitudesPage)
                     await Shell.Current.GoToAsync("..");
-                }
                 else
-                {
-                    // Fallback: navegar directamente a la raíz de Solicitudes
                     await Shell.Current.GoToAsync("//Bitacora");
-                }
             }
             catch (Exception ex)
             {
-                // Si algo falla, último recurso: ir a la raíz de Solicitudes
                 System.Diagnostics.Debug.WriteLine($"[NAV Error] {ex.Message}");
                 await Shell.Current.GoToAsync("//Bitacora");
             }
         });
+    }
+
+    [RelayCommand]
+    private async Task VerFotoAsync()
+    {
+        if (Solicitud == null) return;
+
+        if (Solicitud.PersonaId == 0)
+        {
+            var recargada = await _api.ObtenerSolicitudPorIdAsync(Solicitud.SolicitudId);
+            if (recargada?.PersonaId > 0) Solicitud = recargada;
+            else
+            {
+                await Shell.Current.DisplayAlertAsync("Error", "No se pudo identificar a la persona.", "OK");
+                return;
+            }
+        }
+
+        try
+        {
+            var stream = await _api.ObtenerFotoPersonaAsync(Solicitud.PersonaId);
+            if (stream == null)
+            {
+                await Shell.Current.DisplayAlertAsync("Sin foto", "No hay foto registrada para esta persona.", "OK");
+                return;
+            }
+            var imageSource = ImageSource.FromStream(() => stream);
+            var popup = new MostrarFotoPopup(imageSource);
+            await Shell.Current.CurrentPage.ShowPopupAsync(popup);
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Error", $"No se pudo cargar la foto: {ex.Message}", "OK");
+        }
     }
 }
