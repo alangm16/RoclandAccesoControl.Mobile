@@ -31,6 +31,14 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
 
     private bool _datosFrescosCargados = false;
 
+    // ─────────────────────────────────────────────────────────────────
+    // NUEVAS PROPIEDADES REACTIVAS DE PRIMER NIVEL
+    // ─────────────────────────────────────────────────────────────────
+    [ObservableProperty] private bool _tieneFoto;
+    [ObservableProperty] private string _tipoIdentificacion = string.Empty;
+    [ObservableProperty] private string _numeroIdentificacion = string.Empty;
+
+
     public string SolicitudIdParam
     {
         set
@@ -55,13 +63,24 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
 
     partial void OnSolicitudChanged(SolicitudPendiente? value)
     {
-        // 2. Si recibimos la solicitud desde la navegación, recargamos la versión fresca desde la API
-        if (value != null && !_datosFrescosCargados)
+        if (value != null)
         {
-            VisitanteTieneFoto = value.TieneFoto;
-            _datosFrescosCargados = true;
-            _ = CargarGafetesAsync();
-            _ = CargarSolicitudDesdeApiAsync(value.SolicitudId);
+            // Inicialización segura desde los datos de navegación para evitar parpadeos visuales
+            if (!string.IsNullOrWhiteSpace(value.TipoID))
+                TipoIdentificacion = value.TipoID;
+
+            if (!string.IsNullOrWhiteSpace(value.NumeroIdentificacion))
+                NumeroIdentificacion = value.NumeroIdentificacion;
+
+            if (!TieneFoto)
+                TieneFoto = value.TieneFoto;
+
+            if (!_datosFrescosCargados)
+            {
+                _datosFrescosCargados = true;
+                _ = CargarGafetesAsync();
+                _ = CargarSolicitudDesdeApiAsync(value.SolicitudId);
+            }
         }
     }
 
@@ -100,17 +119,31 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         {
             var recargada = await _api.ObtenerSolicitudPorIdAsync(id);
 
-            if (recargada != null && Solicitud != null)
+            if (recargada != null)
             {
-                if (Solicitud.TieneFoto)
+                // ESCUDO DEFENSIVO: Si localmente ya sabemos que tiene foto o texto, los protegemos
+                if (TieneFoto)
                     recargada.TieneFoto = true;
 
-                if (Solicitud.PersonaId > 0 && recargada.PersonaId == 0)
-                    recargada.PersonaId = Solicitud.PersonaId;
-            }
+                if (string.IsNullOrWhiteSpace(recargada.TipoID) && !string.IsNullOrWhiteSpace(TipoIdentificacion))
+                    recargada.TipoID = TipoIdentificacion;
 
-            Solicitud = recargada;
-            VisitanteTieneFoto = Solicitud.TieneFoto;
+                if (string.IsNullOrWhiteSpace(recargada.NumeroIdentificacion) && !string.IsNullOrWhiteSpace(NumeroIdentificacion))
+                    recargada.NumeroIdentificacion = NumeroIdentificacion;
+
+                if (Solicitud != null)
+                {
+                    if (Solicitud.PersonaId > 0 && recargada.PersonaId == 0)
+                        recargada.PersonaId = Solicitud.PersonaId;
+                }
+
+                Solicitud = recargada;
+
+                // Sincronizamos las propiedades reactivas con el estado final protegido
+                TieneFoto = Solicitud.TieneFoto;
+                TipoIdentificacion = Solicitud.TipoID;
+                NumeroIdentificacion = Solicitud.NumeroIdentificacion;
+            }
         }
         catch (Exception ex)
         {
@@ -124,15 +157,15 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // FLUJO DE APROBACIÓN CON VERIFICACIÓN DE FOTO
+    // FLUJO DE APROBACIÓN MODIFICADO CON LA PROPIEDAD REACTIVA UNIFICADA
     // ─────────────────────────────────────────────────────────────────
-
     [RelayCommand]
     private async Task AprobarAsync()
     {
         if (Solicitud is null) return;
 
-        if (!Solicitud.TieneFoto)
+        // Evaluamos directamente la propiedad reactiva limpia
+        if (!TieneFoto)
         {
             var fotoPopup = new FotoRequeridaPopup();
             var fotoResult = await Shell.Current.CurrentPage.ShowPopupAsync<bool>(fotoPopup);
@@ -146,8 +179,9 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
                 return;
             }
 
+            // Forzamos el estado true unificado
+            TieneFoto = true;
             Solicitud.TieneFoto = true;
-            VisitanteTieneFoto = true;
         }
         else
         {
@@ -158,7 +192,6 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
                 await VerFotoAsync();
         }
 
-        // Continúa con verificación de datos y aprobación...
         bool datosVerificados = await VerificarDatosAsync();
         if (!datosVerificados) return;
 
@@ -206,9 +239,6 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         }
     }
 
-    /// <summary>
-    /// Captura una foto usando la cámara y la sube al backend.
-    /// </summary>
     private async Task<bool> TomarFotoYSubirAsync()
     {
         try
@@ -218,43 +248,38 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
                 var recargada = await _api.ObtenerSolicitudPorIdAsync(Solicitud.SolicitudId);
                 if (recargada == null || recargada.PersonaId == 0)
                 {
-                    await Shell.Current.DisplayAlertAsync("Error",
-                        "No se pudo identificar a la persona.", "OK");
+                    await Shell.Current.DisplayAlertAsync("Error", "No se pudo identificar a la persona.", "OK");
                     return false;
                 }
 
-                if (Solicitud.TieneFoto)
+                if (TieneFoto)
                     recargada.TieneFoto = true;
 
                 Solicitud = recargada;
             }
 
-            // ← Aquí va la magia: ML Kit abre su propia UI con detección de bordes
             byte[]? imageBytes = await _documentScanner.EscanearDocumentoAsync();
-
-            if (imageBytes == null) return false; // Usuario canceló
+            if (imageBytes == null) return false;
 
             EstaCargando = true;
-            bool success = await _api.SubirFotoPersonaAsync(
-                Solicitud!.PersonaId, imageBytes, "image/jpeg");
+            bool success = await _api.SubirFotoPersonaAsync(Solicitud!.PersonaId, imageBytes, "image/jpeg");
 
             if (success)
             {
-                await Shell.Current.DisplayAlertAsync("Éxito",
-                    "Foto de credencial guardada correctamente", "OK");
+                await Shell.Current.DisplayAlertAsync("Éxito", "Foto de credencial guardada correctamente", "OK");
+                TieneFoto = true;
+                Solicitud.TieneFoto = true;
                 return true;
             }
             else
             {
-                await Shell.Current.DisplayAlertAsync("Error",
-                    "No se pudo guardar la foto en el servidor", "OK");
+                await Shell.Current.DisplayAlertAsync("Error", "No se pudo guardar la foto en el servidor", "OK");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlertAsync("Error",
-                $"Error al capturar la credencial: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlertAsync("Error", $"Error al capturar la credencial: {ex.Message}", "OK");
             return false;
         }
         finally
@@ -392,24 +417,22 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
     {
         if (Solicitud == null) return;
 
-        // Si ya sabemos que tiene foto, no recargamos
-        if (Solicitud.TieneFoto && Solicitud.PersonaId > 0)
+        if (TieneFoto && Solicitud.PersonaId > 0)
         {
             await MostrarFotoDesdeApi();
             return;
         }
 
-        // Solo recargamos si realmente no tenemos PersonaId
         if (Solicitud.PersonaId == 0)
         {
             var recargada = await _api.ObtenerSolicitudPorIdAsync(Solicitud.SolicitudId);
             if (recargada != null)
             {
-                // CORRECCIÓN: Asignar el valor ANTES de pasarlo a la propiedad observable
-                if (Solicitud.TieneFoto)
+                if (TieneFoto)
                     recargada.TieneFoto = true;
 
                 Solicitud = recargada;
+                TieneFoto = Solicitud.TieneFoto;
             }
         }
 

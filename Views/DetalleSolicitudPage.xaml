@@ -116,38 +116,38 @@
                                    TextColor="#374151" VerticalOptions="Center"/>
                         </HorizontalStackLayout>
 
-                        <!-- Fila: ID -->
+                        <!-- Fila: ID (actualizada con propiedades raíz) -->
                         <Grid ColumnDefinitions="*,*" Margin="0,0,0,14">
                             <VerticalStackLayout Spacing="3">
                                 <Label Text="Tipo de identificación"
                                        FontSize="11" TextColor="#6B7280"/>
-                                <Label Text="{Binding Solicitud.TipoID}"
+                                <Label Text="{Binding TipoIdentificacion}"
                                        FontSize="14" FontAttributes="Bold"
                                        TextColor="#111827"/>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Spacing="3">
                                 <Label Text="Número" FontSize="11" TextColor="#6B7280"/>
-                                <Label Text="{Binding Solicitud.NumeroIdentificacion}"
+                                <Label Text="{Binding NumeroIdentificacion}"
                                        FontSize="14" FontAttributes="Bold"
                                        TextColor="#111827"/>
                             </VerticalStackLayout>
                         </Grid>
 
+                        <!-- Botón de foto (actualizado con propiedad raíz) -->
                         <Border BackgroundColor="#F3F4F6"
-                            StrokeShape="RoundRectangle 10"
-                            Stroke="Transparent"
-                            Padding="10,8"
-                            Margin="0,0,0,14"
-                            IsVisible="{Binding VisitanteTieneFoto}">
-                                                <Border.GestureRecognizers>
-                                                    <TapGestureRecognizer Command="{Binding VerFotoCommand}"/>
-                                                </Border.GestureRecognizers>
-
-                                                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
-                                                    <Image Source="icon_camera.png" HeightRequest="16" WidthRequest="16" Opacity="0.6"/>
-                                            <Label Text="Ver foto de identificación"
-                                   FontSize="13" FontAttributes="Bold"
-                                   TextColor="#374151"/>    
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="Transparent"
+                                Padding="10,8"
+                                Margin="0,0,0,14"
+                                IsVisible="{Binding TieneFoto}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding VerFotoCommand}"/>
+                            </Border.GestureRecognizers>
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Image Source="icon_camera.png" HeightRequest="16" WidthRequest="16" Opacity="0.6"/>
+                                <Label Text="Ver foto de identificación"
+                                       FontSize="13" FontAttributes="Bold"
+                                       TextColor="#374151"/>
                             </HorizontalStackLayout>
                         </Border>
 
