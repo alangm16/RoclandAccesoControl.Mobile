@@ -96,7 +96,18 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         EstaCargando = true;
         try
         {
-            Solicitud = await _api.ObtenerSolicitudPorIdAsync(id);
+            var recargada = await _api.ObtenerSolicitudPorIdAsync(id);
+
+            if (recargada != null && Solicitud != null)
+            {
+                if (Solicitud.TieneFoto)
+                    recargada.TieneFoto = true;
+
+                if (Solicitud.PersonaId > 0 && recargada.PersonaId == 0)
+                    recargada.PersonaId = Solicitud.PersonaId;
+            }
+
+            Solicitud = recargada;
         }
         catch (Exception ex)
         {
@@ -131,7 +142,9 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
                 await Shell.Current.CurrentPage.ShowPopupAsync(toast);
                 return;
             }
+
             Solicitud.TieneFoto = true;
+            OnPropertyChanged(nameof(Solicitud));
         }
         else
         {
@@ -206,6 +219,10 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
                         "No se pudo identificar a la persona.", "OK");
                     return false;
                 }
+
+                if (Solicitud.TieneFoto)
+                    recargada.TieneFoto = true;
+
                 Solicitud = recargada;
             }
 
@@ -385,11 +402,11 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
             var recargada = await _api.ObtenerSolicitudPorIdAsync(Solicitud.SolicitudId);
             if (recargada != null)
             {
-                // Conservamos el valor de TieneFoto si ya lo habíamos establecido localmente
-                bool yaTieneFotoLocal = Solicitud.TieneFoto;
+                // CORRECCIÓN: Asignar el valor ANTES de pasarlo a la propiedad observable
+                if (Solicitud.TieneFoto)
+                    recargada.TieneFoto = true;
+
                 Solicitud = recargada;
-                if (yaTieneFotoLocal && !Solicitud.TieneFoto)
-                    Solicitud.TieneFoto = true; // forzamos la persistencia local
             }
         }
 
