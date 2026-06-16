@@ -27,6 +27,7 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
     [ObservableProperty] private ObservableCollection<GafeteDisponible> _gafetesDisponibles = [];
     [ObservableProperty] private GafeteDisponible? _gafeteSeleccionado;
     [ObservableProperty] private bool _accionCompletada;
+    [ObservableProperty] private bool _visitanteTieneFoto;
 
     private bool _datosFrescosCargados = false;
 
@@ -57,6 +58,7 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         // 2. Si recibimos la solicitud desde la navegación, recargamos la versión fresca desde la API
         if (value != null && !_datosFrescosCargados)
         {
+            VisitanteTieneFoto = value.TieneFoto;
             _datosFrescosCargados = true;
             _ = CargarGafetesAsync();
             _ = CargarSolicitudDesdeApiAsync(value.SolicitudId);
@@ -108,6 +110,7 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
             }
 
             Solicitud = recargada;
+            VisitanteTieneFoto = Solicitud.TieneFoto;
         }
         catch (Exception ex)
         {
@@ -144,7 +147,7 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
             }
 
             Solicitud.TieneFoto = true;
-            OnPropertyChanged(nameof(Solicitud));
+            VisitanteTieneFoto = true;
         }
         else
         {

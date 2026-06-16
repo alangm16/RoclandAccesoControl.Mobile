@@ -133,19 +133,19 @@
                             </VerticalStackLayout>
                         </Grid>
 
-                        <!-- Botón para ver foto (si existe) -->
                         <Border BackgroundColor="#F3F4F6"
                             StrokeShape="RoundRectangle 10"
                             Stroke="Transparent"
                             Padding="10,8"
                             Margin="0,0,0,14"
-                            IsVisible="{Binding Solicitud.TieneFoto}">
+                            IsVisible="{Binding VisitanteTieneFoto}">
                                                 <Border.GestureRecognizers>
                                                     <TapGestureRecognizer Command="{Binding VerFotoCommand}"/>
                                                 </Border.GestureRecognizers>
+
                                                 <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
                                                     <Image Source="icon_camera.png" HeightRequest="16" WidthRequest="16" Opacity="0.6"/>
-                                                <Label Text="Ver foto de identificación"
+                                            <Label Text="Ver foto de identificación"
                                    FontSize="13" FontAttributes="Bold"
                                    TextColor="#374151"/>    
                             </HorizontalStackLayout>
