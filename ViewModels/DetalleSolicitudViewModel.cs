@@ -322,8 +322,8 @@ public partial class DetalleSolicitudViewModel : BaseViewModel
         }
 
         // Verificar placas si es proveedor/cliente y tiene placas registradas
-        bool requierePlacas = (Solicitud.TipoRegistro == "Proveedor" || Solicitud.TipoRegistro == "Cliente")
-                              && !string.IsNullOrWhiteSpace(Solicitud.Placas);
+        bool requierePlacas = (Solicitud.TipoRegistro == "Proveedor" || Solicitud.TipoRegistro == "Colaborador")
+                      && !string.IsNullOrWhiteSpace(Solicitud.Placas);
         if (requierePlacas)
         {
             var placasPopup = new VerificarDatoPopup(
